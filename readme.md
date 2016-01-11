@@ -6,7 +6,8 @@ To get started, import the following plugins:
  - `bluebird`
  - `request`
  - `ws`
- 
+
+
  Then, add your username and password to the relevant strings in `ws.js`
  
  Navigate to the folder in Terminal/CMD, and call
