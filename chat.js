@@ -127,6 +127,6 @@
         console.log(finalMessage + message);
     }
     
-exports.modules = {
-    processEvent: processEvent
-};
+    exports.modules = {
+        processEvent: processEvent
+    };
