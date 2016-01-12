@@ -6,7 +6,9 @@ To get started, import the following plugins:
  - `bluebird`
  - `request`
  - `ws`
- 
+
+They're need for HTML loading, Promises, making ajax calls and websockets respectively.
+
 Then, add your username and password to the relevant strings in `ws.js`
 
 Navigate to the folder in Terminal/CMD, and call
