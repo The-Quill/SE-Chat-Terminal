@@ -5,7 +5,6 @@ const config        = require('./config');
 const WebSocket     = require('ws');
 const ChatHandler   = require('./chat');
 const colors        = require('colors');
-const prompt        = require('./prompt');
 
 if (!config.user.hasOwnProperty("email") || !config.user.hasOwnProperty("password") || !Object.keys(config.room_domains).length > 0) {
     throw new Error("Default configurations missing");
@@ -144,6 +143,5 @@ module.exports = {
     joinRoom: joinRoom,
     chatAbbreviationToFull: chatAbbreviationToFull,
     send: send,
-    start: start,
-    prompt: prompt
+    start: start
 };
