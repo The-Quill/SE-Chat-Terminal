@@ -16,9 +16,12 @@ const properties = {
                     ' as an abbreviated chat domain'.bold.red
             },
             'room_id': {
-                description: 'Room ID',
+                description: colors.magenta('Room ID'),
                 pattern: /^[0-9]+$/,
                 message: colors.red('Room ID must be only numbers')
+            },
+            message: {
+                description: colors.magenta("The message to send")
             }
         }
     },
@@ -67,6 +70,7 @@ var commands = {
                     return 1;
                 })(error);
             }
+            console.log(core);
             var chatDomain = core.chatAbbreviationToFull(result.domain)
             core.send(chatDomain, result.room_id, result.message);
         });
