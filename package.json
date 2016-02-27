@@ -1,0 +1,46 @@
+{
+  "name": "Node-ChatBot",
+  "version": "1.0.0",
+  "description": "A Node.JS chatbot for SE",
+  "author": "Quill <seriouslyquill@gmail.com>",
+  "contributors": [
+    {
+      "name": "Quill",
+      "email": "seriouslyquill@gmail.com"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/The-Quill/SE-Chat-Websockets"
+  },
+  "scripts": {
+    "start": "node ws.js",
+    "predeploy": "echo im about to deploy",
+    "postdeploy": "echo ive deployed"
+  },
+  "bugs": {
+    "url": "https://github.com/The-Quill/SE-Chat-Websockets/issues"
+  },
+  "keywords": [
+    "stackexchange",
+    "chatbot",
+    "sockets",
+    "chat",
+    "magic"
+  ],
+  "dependencies": {
+    "bluebird": "*",
+    "request": "*",
+    "cheerio": "*",
+    "ws": "*"
+  },
+  "devDependencies": {
+    "babel": "^6.5.2",
+    "babel-cli": "^6.5.1",
+    "colors": "^1.1.2"
+  },
+  "private": true,
+  "analyze": true,
+  "preferGlobal": true,
+  "license": "MIT"
+}

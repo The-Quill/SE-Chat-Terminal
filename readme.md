@@ -1,19 +1,14 @@
 #SE Chat Websockets
 
-To get started, import the following plugins:
+To get started, build the required plugins by calling:
 
- - `Cheerio`
- - `bluebird`
- - `request`
- - `ws`
+     npm install
 
-They're need for HTML loading, Promises, making ajax calls and websockets respectively.
-
-Then, add your username and password to the relevant strings in `ws.js`
+Then, add your username and password to the relevant strings to your environment place (`.bash_profile` on mac, `.bash_rc` on linux)
 
 Navigate to the folder in Terminal/CMD, and call
 
-     node ws.js
+     node start.js
 
 #License
 
