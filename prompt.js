@@ -16,7 +16,7 @@ const properties = {
                     ' as an abbreviated chat domain'.bold.red
             },
             'room_id': {
-                description: 'room id',
+                description: 'Room ID',
                 pattern: /^[0-9]+$/,
                 message: colors.red('Room ID must be only numbers')
             }
@@ -97,7 +97,7 @@ function start() {
                 commands.say();
                 break;
             case "help":
-                formattedCommandInstructions.forEach(function(commandMessage){
+                formattedCommandInstructions.forEach(function(commandInstruction){
                     console.log(commandInstruction);
                 })
                 break;
