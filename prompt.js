@@ -70,7 +70,6 @@ var commands = {
                     return 1;
                 })(error);
             }
-            console.log(core);
             var chatDomain = core.chatAbbreviationToFull(result.domain)
             core.send(chatDomain, result.room_id, result.message);
         });
