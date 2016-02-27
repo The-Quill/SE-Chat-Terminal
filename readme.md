@@ -4,7 +4,7 @@ To get started, build the required plugins by calling:
 
      npm install
 
-Then, add your username and password to the relevant strings to your environment place (`.bash_profile` on Mac/Linux)
+Then, add your username and password to the relevant strings to your environment place (`.bash_profile` on Mac/Linux, or `.zshenv` if using `zsh`)
 
 Navigate to the folder in Terminal/CMD, and call
 
