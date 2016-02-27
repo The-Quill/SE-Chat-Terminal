@@ -32,7 +32,9 @@
     "bluebird": "*",
     "request": "*",
     "cheerio": "*",
-    "ws": "*"
+    "ws": "*",
+    "colors": "*",
+    "prompt": "*"
   },
   "devDependencies": {
     "babel": "^6.5.2",
