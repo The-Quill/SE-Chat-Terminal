@@ -13,11 +13,31 @@ var domainVars = {
     fkey: {},
     jars: {}
 };
+
+function openWebSocket(url, time, domain) {
+  return new Promise(function (resolve, reject) {
+    const ws = new WebSocket(url + "?l=" + time, null, {
+      headers: {
+        'Origin': 'http://chat.' + domain + '.com'
+      }
+    })
+    ws.on('message', function(jsonMessage) {
+      var message = JSON.parse(jsonMessage)
+      var keys = Object.keys(message)
+      keys.forEach(key => message[key].e && message[key].e.forEach(ChatHandler.processEvent))
+    })
+    ws.on('open', () => resolve(domain))
+    ws.on('error', () => reject(e))  
+  })
+}
+
 var connectDomainRooms = function(domain, initialRoom, rooms) {
     var initialRoomId = initialRoom.room_id;
     domain = domain.toLowerCase();
     domainVars.jars[domain] = request.jar();
-    request.getAsync({
+    
+    // Return a promise here
+    return request.getAsync({
         url: 'https://' + (domain == "stackexchange" ? "codereview." : "") + domain + '.com/users/login',
         jar: domainVars.jars[domain]
     }).then(function(response) {
@@ -71,24 +91,10 @@ var connectDomainRooms = function(domain, initialRoom, rooms) {
             });
         }).then(function(response) {
             time = Math.floor(Date.now() / 1000);
-            var ws = new WebSocket(url + "?l=" + time, null, {
-                headers: {
-                    'Origin': 'http://chat.' + domain + '.com'
-                }
-            });
-            ws.on('message', function(jsonMessage){
-                var message = JSON.parse(jsonMessage);
-                var keys = Object.keys(message);
-                keys.forEach(function(key){
-                    if (message[key].e){
-                        message[key].e.forEach(function(event) {
-                            ChatHandler.processEvent(event);
-                        });
-                    }
-                });
-            });
-            ws.on('open', function() { debug('Opened a connection to '.yellow + colors.bold.white(domain)) });
-            ws.on('error', function(e) { console.log(colors.bold.red(e)) });
+            // Where are you getting url from?
+            return openWebSocket(url, time, domain)
+              .then(domain => debug('Opened a connection to '.yellow + colors.bold.white(domain)))
+              .catch(err => console.log(colors.bold.red(err))
         });
     });
 };
@@ -130,14 +136,18 @@ var chatAbbreviationToFull = function(domainAbbreviation){
         se: "stackexchange"
     }[domainAbbreviation.toString().toLowerCase()];
 };
+// Now this returns a promise, no need to use promisify in the main file
 var start = function(){
-    Object.keys(config.room_domains).forEach(function(domain) {
-        domain = config.room_domains[domain];
-        var firstDomainName = Object.keys(domain.rooms)[0];
-        var domainRooms = JSON.parse(JSON.stringify(domain.rooms));
-        delete domainRooms[firstDomainName];
-        connectDomainRooms(domain.name, domain.rooms[firstDomainName], domainRooms);
-    });
+  // use map to convert each key into the returned promise..
+  const promises = Object.keys(config.room_domains).map(function(domain) {
+      domain = config.room_domains[domain];
+      var firstDomainName = Object.keys(domain.rooms)[0];
+      var domainRooms = JSON.parse(JSON.stringify(domain.rooms));
+      // ?????
+      delete domainRooms[firstDomainName];
+      return connectDomainRooms(domain.name, domain.rooms[firstDomainName], domainRooms);
+  })
+  return Promise.all(promises)
 };
 module.exports = {
     joinRoom: joinRoom,
