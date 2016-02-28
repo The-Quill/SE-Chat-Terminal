@@ -6,9 +6,6 @@ const WebSocket = require('ws');
 const ChatHandler = require('./chat');
 const colors = require('colors');
 
-if (!config.user.hasOwnProperty("email") || !config.user.hasOwnProperty("password") || !Object.keys(config.room_domains).length > 0) {
-    throw new Error("Default configurations missing");
-}
 var domainVars = {
     fkey: {},
     jars: {}
@@ -147,13 +144,22 @@ var chatAbbreviationToFull = function(domainAbbreviation) {
         se: "stackexchange"
     }[domainAbbreviation.toString().toLowerCase()];
 };
+var domainNameFixer = function(name){
+    name = name.replace(" ", "").toLowerCase();
+    if (name == "metastackexchange"
+    ||  name == "mse"){  return "meta.stackexchange" }
+    if (name == "so") {  return "stackoverflow"      }
+    if (name == "se") {  return "stackexchange"      }
+    return name;
+}
 var start = function() {
-    const promises = Object.keys(config.room_domains).map(function(domain) {
-        domain = config.room_domains[domain];
+    const promises = Object.keys(config.room_domains).map(function(domainName) {
+        var domain = config.room_domains[domainName];
+        domainName = domainNameFixer(domainName);
         var firstDomainName = Object.keys(domain.rooms)[0];
         var domainRooms = JSON.parse(JSON.stringify(domain.rooms));
         delete domainRooms[firstDomainName];
-        return connectDomainRooms(domain.name, domain.rooms[firstDomainName], domainRooms);
+        return connectDomainRooms(domainName, domain.rooms[firstDomainName], domainRooms);
     })
     return Promise.all(promises)
 };
