@@ -10,7 +10,90 @@ var domainVars = {
     fkey: {},
     jars: {}
 };
-
+var actions = {
+    join: function(domain, roomId, fkey) {
+        fkey = fkey || domainVars.fkey[domain];
+        return request.postAsync({
+            url: 'http://chat.' + domain + '.com/ws-auth',
+            form: {
+                fkey: fkey,
+                roomid: roomId
+            },
+            jar: domainVars.jars[domain]
+        });
+    },
+    leave: function(domain, roomId){
+        if (!domain || !roomId) {
+            console.log(colors.bold.red("[Chat Client] You're missing a part of that command"));
+            return;
+        }
+        fkey = domainVars.fkey[domain];
+        return request.postAsync({
+            url: 'http://chat.' + domain + '.com/chats/leave/' + roomId,
+            form: {
+                fkey: fkey
+            },
+            jar: domainVars.jars[domain]
+        });
+    },
+    send: function(domain, roomId, text, prefix) {
+        if (!domain || !roomId || !text) {
+            console.log(colors.bold.red("[Chat Client] You're missing a part of that command"));
+            return;
+        }
+        request.post({
+            url: 'http://chat.' + domain + '.com/chats/' + roomId + '/messages/new',
+            form: {
+                fkey: domainVars.fkey[domain],
+                text: prefix ? prefix + ' ' + text : text
+            },
+            jar: domainVars.jars[domain]
+        });
+    },
+    star: function(domain, messageId){
+        if (!domain || !messageId) {
+            console.log(colors.bold.red("[Chat Client] You're missing a part of that command"));
+            return;
+        }
+        fkey = domainVars.fkey[domain];
+        return request.postAsync({
+            url: 'http://chat.' + domain + '.com/messages/' + messageId + '/star',
+            form: {
+                fkey: fkey
+            },
+            jar: domainVars.jars[domain]
+        });
+    },
+    edit: function(domain, messageId, text){
+        if (!domain || !messageId || !text) {
+            console.log(colors.bold.red("[Chat Client] You're missing a part of that command"));
+            return;
+        }
+        fkey = domainVars.fkey[domain];
+        return request.postAsync({
+            url: 'http://chat.' + domain + '.com/messages/' + messageId,
+            form: {
+                fkey: fkey,
+                text: text
+            },
+            jar: domainVars.jars[domain]
+        });
+    },
+    delete: function(domain, messageId){
+        if (!domain || !messageId) {
+            console.log(colors.bold.red("[Chat Client] You're missing a part of that command"));
+            return;
+        }
+        fkey = domainVars.fkey[domain];
+        return request.postAsync({
+            url: 'http://chat.' + domain + '.com/messages/' + messageId + '/delete',
+            form: {
+                fkey: fkey
+            },
+            jar: domainVars.jars[domain]
+        });
+    }
+};
 function openWebSocket(url, time, domain) {
     return new Promise(function(resolve, reject) {
         const ws = new WebSocket(url + "?l=" + time, null, {
@@ -81,7 +164,7 @@ var connectDomainRooms = function(domain, initialRoom, rooms) {
             Object.keys(rooms).forEach(function(room) {
                 room = rooms[room];
                 debug(colors.yellow("Connecting to ") + colors.bold.white(room.name));
-                joinRoom(domain, room.room_id, fkey);
+                actions.join(domain, room.room_id, fkey);
             });
             debug(colors.yellow("Connecting to ") + colors.bold.white(initialRoom.name));
             return request.postAsync({
@@ -105,37 +188,12 @@ var connectDomainRooms = function(domain, initialRoom, rooms) {
         });
     });
 };
-var send = function(domain, roomId, text, prefix) {
-    if (!domain || !roomId || !text) {
-        console.log(colors.bold.red("[Chat Client] You're missing a part of that message"));
-        return;
-    }
-    request.post({
-        url: 'http://chat.' + domain + '.com/chats/' + roomId + '/messages/new',
-        form: {
-            fkey: domainVars.fkey[domain],
-            text: prefix ? prefix + ' ' + text : text
-        },
-        jar: domainVars.jars[domain]
-    });
-};
 
 function debug(message) {
     if (config.debug) {
         console.log(message);
     }
 }
-var joinRoom = function(domain, roomId, fkey) {
-    fkey = fkey || domainVars.fkey[domain];
-    return request.postAsync({
-        url: 'http://chat.' + domain + '.com/ws-auth',
-        form: {
-            fkey: fkey,
-            roomid: roomId
-        },
-        jar: domainVars.jars[domain]
-    });
-};
 var chatAbbreviationToFull = function(domainAbbreviation) {
     if (typeof domainAbbreviation !== "string") throw new Error("Abbeviation must be a string");
     return {
@@ -164,8 +222,7 @@ var start = function() {
     return Promise.all(promises)
 };
 module.exports = {
-    joinRoom: joinRoom,
+    actions: actions,
     chatAbbreviationToFull: chatAbbreviationToFull,
-    send: send,
     start: start
 };
