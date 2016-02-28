@@ -3,8 +3,31 @@ const colors = require('colors');
 const core   = require('./core');
 const Promise= require('bluebird');
 
+if (typeof Object.assign != 'function') {
+    (function() {
+        Object.assign = function(target) {
+            'use strict';
+            if (target === undefined || target === null) {
+                throw new TypeError('Cannot convert undefined or null to object');
+            }
+
+            var output = Object(target);
+            for (var index = 1; index < arguments.length; index++) {
+                var source = arguments[index];
+                if (source !== undefined && source !== null) {
+                    for (var nextKey in source) {
+                        if (source.hasOwnProperty(nextKey)) {
+                            output[nextKey] = source[nextKey];
+                        }
+                    }
+                }
+            }
+            return output;
+        };
+    })();
+}
 prompt.message = "";
-const properties = {
+var properties = {
     say: {
         properties: {
             domain: {
@@ -22,7 +45,7 @@ const properties = {
                 message: colors.red('Room ID must be only numbers')
             },
             message: {
-                description: colors.magenta("The message to send")
+                description: colors.magenta("The message")
             }
         }
     },
@@ -44,6 +67,24 @@ const properties = {
             }
         }
     },
+    star: {
+        properties: {
+            domain: {
+                description: 'Chat Domain (abbreviated)',
+                pattern: /[mse|so|se]/i,
+                message: 'Please enter either '.bold.red +
+                    'MSE'.bold.white +
+                    ', '.bold.red + 'SO'.bold.white +
+                    ' or '.bold.red + 'SE'.bold.white +
+                    'as an abbreviated chat domain'.bold.red
+            },
+            'message_id': {
+                description: 'Message id',
+                pattern: /^[0-9]+$/,
+                message: colors.bold.red('Message ID must be only numbers')
+            }
+        }
+    },
     commands: {
         properties: {
             command: {
@@ -57,10 +98,24 @@ const properties = {
         }
     }
 };
+properties.leave = properties.join;
+properties.edit  = Object.assign({}, properties.say);
+delete properties.edit.properties.room_id;
+properties.edit.properties.message_id = {
+    description: colors.magenta('Message ID'),
+    pattern: /^[0-9]+$/,
+    message: colors.red('Message ID must be only numbers')
+};
+properties.delete= properties.star;
+
 var formattedCommandInstructions = [
     "/help".bold.white + " to get a list of commands".yellow,
     "/say".bold.white + " to send a message".yellow,
     "/join".bold.white + " to join a room".yellow,
+    "/leave".bold.white + " to leave a room".yellow,
+    "/star".bold.white + " to star a message".yellow,
+    "/delete".bold.white + " to delete a message".yellow,
+    "/edit".bold.white + " to edit a message".yellow,
 ]
 var commands = {
     say: function() {
@@ -72,7 +127,7 @@ var commands = {
                 })(error);
             }
             var chatDomain = core.chatAbbreviationToFull(result.domain)
-            core.send(chatDomain, result.room_id, result.message);
+            core.actions.send(chatDomain, result.room_id, result.message);
         });
     },
     join: function() {
@@ -84,7 +139,55 @@ var commands = {
                 })(error);
             }
             var chatDomain = core.chatAbbreviationToFull(result.domain)
-            core.joinRoom(chatDomain, result.room_id);
+            core.actions.join(chatDomain, result.room_id);
+        });
+    },
+    star: function() {
+        prompt.get(properties.star, function(error, result) {
+            if (error) {
+                return (function(e) {
+                    console.log(e);
+                    return 1;
+                })(error);
+            }
+            var chatDomain = core.chatAbbreviationToFull(result.domain)
+            core.actions.star(chatDomain, result.message_id);
+        });
+    },
+    edit: function() {
+        prompt.get(properties.edit, function(error, result) {
+            if (error) {
+                return (function(e) {
+                    console.log(e);
+                    return 1;
+                })(error);
+            }
+            var chatDomain = core.chatAbbreviationToFull(result.domain);
+            core.actions.edit(chatDomain, result.message_id, result.message);
+        });
+    },
+    delete: function() {
+        prompt.get(properties.delete, function(error, result) {
+            if (error) {
+                return (function(e) {
+                    console.log(e);
+                    return 1;
+                })(error);
+            }
+            var chatDomain = core.chatAbbreviationToFull(result.domain)
+            core.actions.delete(chatDomain, result.message_id);
+        });
+    },
+    leave: function(){
+        prompt.get(properties.leave, function(error, result) {
+            if (error) {
+                return (function(e) {
+                    console.log(e);
+                    return 1;
+                })(error);
+            }
+            var chatDomain = core.chatAbbreviationToFull(result.domain)
+            core.actions.leave(chatDomain, result.room_id);
         });
     }
 }
@@ -96,26 +199,25 @@ function start() {
                 return 1;
             })(error);
         }
-        switch (result.command.replace('/', '')) {
-            case "say":
-                commands.say();
-                break;
+        var command = result.command.replace('/', '');
+        switch (command) {
             case "help":
                 formattedCommandInstructions.forEach(function(commandInstruction){
                     console.log(commandInstruction);
                 })
                 break;
-            case "join":
-                commands.join();
-                break;
             default:
-                console.log(
-                    colors.bold.red(
-                        "Command unrecognised. " +
-                        "If this command shows up in /help, " +
-                        "please leave an issue on the GitHub repo"
-                    )
-                );
+                if (!commands.hasOwnProperty(command)){
+                    console.log(
+                        colors.bold.red(
+                            "Command unrecognised. " +
+                            "If this command shows up in /help, " +
+                            "please leave an issue on the GitHub repo"
+                        )
+                    );
+                } else {
+                    commands[command]();
+                }
                 break;
         }
     });
