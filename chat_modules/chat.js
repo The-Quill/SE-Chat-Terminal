@@ -79,7 +79,7 @@ function processEvent(event) {
             } else {
                 console.log(
                     messageFormatting.room(event) ,
-                    messageFormatting.user(event.user_name) +
+                    messageFormatting.user(event) +
                     messageFormatting.activity(" edited a post to say: ") +
                     messageFormatting.content(event)
                 )
