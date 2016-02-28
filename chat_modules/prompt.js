@@ -1,6 +1,7 @@
 const prompt = require('prompt');
 const colors = require('colors');
 const core   = require('./core');
+const Promise= require('bluebird');
 
 prompt.message = "";
 const properties = {
