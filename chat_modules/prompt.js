@@ -49,6 +49,27 @@ var properties = {
             }
         }
     },
+    edit: {
+        properties: {
+            domain: {
+                description: colors.magenta('Chat Domain (abbreviated)'),
+                pattern: /[mse|so|se]/i,
+                message: 'Please enter either '.bold.red +
+                    'MSE'.bold.white +
+                    ', '.bold.red + 'SO'.bold.white +
+                    ' or '.bold.red + 'SE'.bold.white +
+                    ' as an abbreviated chat domain'.bold.red
+            },
+            'message_id': {
+                description: colors.magenta('Message ID'),
+                pattern: /^[0-9]+$/,
+                message: colors.red('Message ID must be only numbers')
+            },
+            message: {
+                description: colors.magenta("The message")
+            }
+        }
+    },
     join: {
         properties: {
             domain: {
@@ -98,15 +119,8 @@ var properties = {
         }
     }
 };
-properties.leave = properties.join;
-properties.edit  = Object.assign({}, properties.say);
-delete properties.edit.properties.room_id;
-properties.edit.properties.message_id = {
-    description: colors.magenta('Message ID'),
-    pattern: /^[0-9]+$/,
-    message: colors.red('Message ID must be only numbers')
-};
-properties.delete= properties.star;
+properties.leave  = properties.join;
+properties.delete = properties.star;
 
 var formattedCommandInstructions = [
     "/help".bold.white + " to get a list of commands".yellow,
