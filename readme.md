@@ -9,6 +9,10 @@ Then, add your username and password to the relevant strings to your environment
      export EMAIL=you@example.com
      export PASSWORD=password
 
+And then copy the config sample file into a `config.json` file.
+
+There you can specify the `star_threshold`, `debug` variable, and rooms.
+
 ---
 
 Navigate to the folder in Terminal/CMD, and call
