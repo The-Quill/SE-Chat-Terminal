@@ -115,7 +115,7 @@ function processEvent(event) {
                 return;
             }
             ITEMS.stars[event.message_id] = event.message_stars;
-            if (ITEMS.stars[event.message_id] > config.star_threshold || 3) {
+            if (ITEMS.stars[event.message_id] > config.star_threshold) {
                 console.log(
                     messageFormatting.room(event) +
                     messageFormatting.activity(" highly starred message: ") +
