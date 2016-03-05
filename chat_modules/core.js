@@ -213,6 +213,11 @@ var domainNameFixer = function(name){
 var start = function() {
     const promises = Object.keys(config.room_domains).map(function(domainName) {
         var domain = config.room_domains[domainName];
+        if (domain.rooms.length === 0){
+            return new Promise()
+            .then(function(){})
+            .error(function(){});
+        }
         domainName = domainNameFixer(domainName);
         var firstDomainName = Object.keys(domain.rooms)[0];
         var domainRooms = JSON.parse(JSON.stringify(domain.rooms));
