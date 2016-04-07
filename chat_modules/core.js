@@ -4,7 +4,6 @@ const request = Promise.promisifyAll(require('request'));
 const config = require('./config');
 const WebSocket = require('ws');
 const ChatHandler = require('./chat');
-const colors = require('colors');
 
 var domainVars = {
     fkey: {},
@@ -24,7 +23,7 @@ var actions = {
     },
     leave: function(domain, roomId){
         if (!domain || !roomId) {
-            console.log(colors.bold.red("[Chat Client] You're missing a part of that command"));
+            console.log("You're missing a part of that argument");
             return;
         }
         fkey = domainVars.fkey[domain];
@@ -38,7 +37,7 @@ var actions = {
     },
     send: function(domain, roomId, text, prefix) {
         if (!domain || !roomId || !text) {
-            console.log(colors.bold.red("[Chat Client] You're missing a part of that command"));
+            console.log("You're missing a part of that command");
             return;
         }
         request.post({
@@ -52,7 +51,7 @@ var actions = {
     },
     star: function(domain, messageId){
         if (!domain || !messageId) {
-            console.log(colors.bold.red("[Chat Client] You're missing a part of that command"));
+            console.log("You're missing a part of that command");
             return;
         }
         fkey = domainVars.fkey[domain];
@@ -66,7 +65,7 @@ var actions = {
     },
     edit: function(domain, messageId, text){
         if (!domain || !messageId || !text) {
-            console.log(colors.bold.red("[Chat Client] You're missing a part of that command"));
+            console.log("You're missing a part of that command");
             return;
         }
         fkey = domainVars.fkey[domain];
@@ -81,7 +80,7 @@ var actions = {
     },
     delete: function(domain, messageId){
         if (!domain || !messageId) {
-            console.log(colors.bold.red("[Chat Client] You're missing a part of that command"));
+            console.log("You're missing a part of that command");
             return;
         }
         fkey = domainVars.fkey[domain];
@@ -124,13 +123,13 @@ var connectDomainRooms = function(domain, initialRoom, rooms) {
 
     // Return a promise here
     return request.getAsync({
-        url: 'https://' + (domain == "stackexchange" ? "codereview." : "") + domain + '.com/users/login',
+        url: 'https://' + (domain == "stackexchange" ? config.default_se_to_login_into + "." : "") + domain + '.com/users/login',
         jar: domainVars.jars[domain]
     }).then(function(response) {
         var $ = cheerio.load(response.body);
         var fkey = $("input[name=fkey]").attr('value');
         return request.postAsync({
-            url: 'https://' + (domain == "stackexchange" ? "codereview." : "") + domain + '.com/users/login',
+            url: 'https://' + (domain == "stackexchange" ? config.default_se_to_login_into + "." : "") + domain + '.com/users/login',
             form: {
                 email: config.user.email,
                 password: config.user.password,
@@ -163,10 +162,10 @@ var connectDomainRooms = function(domain, initialRoom, rooms) {
             url = JSON.parse(response.body).url;
             Object.keys(rooms).forEach(function(room) {
                 room = rooms[room];
-                debug(colors.yellow("Connecting to ") + colors.bold.white(room.name));
+                debug("Connecting to " + room.name);
                 actions.join(domain, room.room_id, fkey);
             });
-            debug(colors.yellow("Connecting to ") + colors.bold.white(initialRoom.name));
+            debug("Connecting to " + initialRoom.name);
             return request.postAsync({
                 url: 'http://chat.' + domain + '.com/ws-auth',
                 form: {
@@ -177,13 +176,12 @@ var connectDomainRooms = function(domain, initialRoom, rooms) {
             });
         }).then(function(response) {
             time = Math.floor(Date.now() / 1000);
-            // Where are you getting url from?
             return openWebSocket(url, time, domain)
             .then(function(){
-                debug('Opened a connection to '.yellow + colors.bold.white(domain)
-            )})
+                debug('Opened a connection to ' + domain);
+            })
             .catch(function(err){
-                console.log(colors.bold.red(err))
+                console.error(err);
             });
         });
     });
@@ -229,5 +227,6 @@ var start = function() {
 module.exports = {
     actions: actions,
     chatAbbreviationToFull: chatAbbreviationToFull,
-    start: start
+    start: start,
+    setMessageFormatting: ChatHandler.setMessageFormatting
 };
