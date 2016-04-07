@@ -1,11 +1,24 @@
 const config = require('./config');
-const colors = require('colors');
 const ITEMS = {
     messages: {},
     stars: {},
     flags: {},
     lastEvent: {}
 };
+var noFormattingLinked = function(){
+    throw new Error("There is no formatting linked.");
+}
+var messageFormatting = {
+    room: noFormattingLinked,
+    user: noFormattingLinked,
+    activity: noFormattingLinked,
+    content: noFormattingLinked,
+    edited: noFormattingLinked,
+    messageId: noFormattingLinked
+};
+var setMessageFormatting = function(formatting){
+    messageFormatting = formatting;
+}
 const EVENT_TYPES = {
     MessagePosted: 1,
     MessageEdited: 2,
@@ -22,24 +35,6 @@ const EVENT_TYPES = {
     MessageMovedOut: 19,
     MessageMovedIn: 20
 };
-const messageFormatting = {
-    room: function(event){
-        return colors.green('[') +
-        colors.bold.white(event.room_id) +
-        colors.green(': ') +
-        colors.bold.white(event.room_name) +
-        colors.green(']');
-    },
-    user: function(event){
-        return colors.bold.yellow(event.user_name);
-    },
-    activity: function(string){
-        return colors.blue(string);
-    },
-    content: function(event){
-        return colors.green(event.content);
-    }
-}
 
 function convert(str) {
     return !str ? "" :
@@ -72,7 +67,7 @@ function processEvent(event) {
                 console.log(
                     messageFormatting.room(event) +
                     messageFormatting.activity(" edited their post of '") +
-                    colors.green(message.length > 25 ? message.substring(0, 12) + "..." : message) +
+                    messageFormatting.edited(event) +
                     messageFormatting.activity("' to say: ") +
                     messageFormatting.content(event)
                 );
@@ -106,7 +101,7 @@ function processEvent(event) {
                 messageFormatting.activity(" changed the name of ") +
                 messageFormatting.room(event.room_name) +
                 messageFormatting.activity(" to ") +
-                colors.bold.white(event.content.substring(0, event.content.lastIndexOf(" /")))
+                messageFormatting.changedRoomName(event)
             );
             break;
         case EVENT_TYPES.MessageStarred:
@@ -153,7 +148,7 @@ function processEvent(event) {
                     messageFormatting.room(event) ,
                     messageFormatting.user(event) +
                     messageFormatting.activity(" deleted a message of: ") +
-                    colors.green(ITEMS.messages[event.message_id])
+                    messageFormatting.messageId(event)
                 );
             }
             break;
@@ -164,7 +159,9 @@ function processEvent(event) {
                 messageFormatting.room(event) +
                 messageFormatting.activity("!")
             );
-            if (event.content) console.log(messageFormatting.content(event));
+            if (event.content){
+                console.log(messageFormatting.content(event));
+            }
             break;
         case EVENT_TYPES.Invitation:
             console.log(
@@ -209,6 +206,7 @@ function removeMessage() {
 module.exports = {
     processEvent: processEvent,
     convert: convert,
+    setMessageFormatting: setMessageFormatting,
     ITEMS: ITEMS,
     EVENT_TYPES: EVENT_TYPES
 };

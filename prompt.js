@@ -1,6 +1,6 @@
 const prompt = require('prompt');
 const colors = require('colors');
-const core   = require('./core');
+const core   = require('./chat_modules/core');
 const Promise= require('bluebird');
 
 if (typeof Object.assign != 'function') {
@@ -236,6 +236,39 @@ function start() {
         }
     });
 }
+const messageFormatting = {
+    room: function(event){
+        return colors.green('[') +
+        colors.bold.white(event.room_id) +
+        colors.green(': ') +
+        colors.bold.white(event.room_name) +
+        colors.green(']');
+    },
+    user: function(event){
+        return colors.bold.yellow(event.user_name);
+    },
+    activity: function(string){
+        return colors.blue(string);
+    },
+    content: function(event){
+        return colors.green(event.content);
+    },
+    edited: function(event){
+        return colors.green(event.content.length > 25 ? event.content.substring(0, 12) + "..." : event.content);
+    },
+    changedRoomName: function(event){
+        var name = event.content.substring(0, event.content.lastIndexOf(" /"));
+        return colors.green('[') +
+        colors.bold.white(event.room_id) +
+        colors.green(': ') +
+        colors.bold.white(name) +
+        colors.green(']');
+    },
+    messageId: function(event){
+        return colors.green(ITEMS.messages[event.message_id])
+    }
+}
+core.setMessageFormatting(messageFormatting);
 module.exports = {
     properties: properties,
     commands: commands,
