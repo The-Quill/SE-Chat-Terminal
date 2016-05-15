@@ -57,7 +57,7 @@ var processEvent = function(event) {
     switch (event.event_type) {
         case EVENT_TYPES.MessagePosted:
             console.log(
-                messageFormatting.room(event),
+                messageFormatting.room(event) +
                 messageFormatting.user(event) +
                 messageFormatting.activity(": ") +
                 messageFormatting.content(event)
@@ -77,7 +77,7 @@ var processEvent = function(event) {
                 );
             } else {
                 console.log(
-                    messageFormatting.room(event),
+                    messageFormatting.room(event) +
                     messageFormatting.user(event) +
                     messageFormatting.activity(" edited a post to say: ") +
                     messageFormatting.content(event)
