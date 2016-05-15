@@ -30,7 +30,7 @@ var properties = {
     say: {
         domain: {
             description: colors.magenta("Chat Domain (abbreviated)"),
-            pattern: /^[mse|so|se]/i,
+            pattern: /([mse|se|so]+)/i,
             message: "Please enter either ".bold.red +
                 "MSE".bold.white +
                 ", ".bold.red + "SO".bold.white +
@@ -49,7 +49,7 @@ var properties = {
     edit: {
         domain: {
             description: colors.magenta("Chat Domain (abbreviated)"),
-            pattern: /[mse|so|se]/i,
+            pattern: /([mse|se|so]+)/i,
             message: "Please enter either ".bold.red +
                 "MSE".bold.white +
                 ", ".bold.red + "SO".bold.white +
@@ -68,7 +68,7 @@ var properties = {
     join: {
         domain: {
             description: colors.magenta("Chat Domain (abbreviated)"),
-            pattern: /[mse|so|se]/i,
+            pattern: /([mse|se|so]+)/i,
             message: "Please enter either ".bold.red +
                 "MSE".bold.white +
                 ", ".bold.red + "SO".bold.white +
@@ -84,7 +84,7 @@ var properties = {
     pingable: {
         domain: {
             description: colors.magenta("Chat Domain (abbreviated)"),
-            pattern: /[mse|so|se]/i,
+            pattern: /([mse|se|so]+)/i,
             message: "Please enter either ".bold.red +
                 "MSE".bold.white +
                 ", ".bold.red + "SO".bold.white +
@@ -105,7 +105,7 @@ var properties = {
     star: {
         domain: {
             description: colors.magenta("Chat Domain (abbreviated)"),
-            pattern: /[mse|so|se]/i,
+            pattern: /([mse|se|so]+)/i,
             message: "Please enter either ".bold.red +
                 "MSE".bold.white +
                 ", ".bold.red + "SO".bold.white +
