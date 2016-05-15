@@ -207,7 +207,6 @@ var handleInput = function(STDIN){
                         if (Object.keys(subCommand).indexOf('pattern') === -1 && Object.keys(subCommand).indexOf('message') === -1){
                             storedValues[subCommandName] = response;
                             resolve(response);
-                            return;
                         }
                         if (response.match(subCommand.pattern) != null){
                             storedValues[subCommandName] = response;
