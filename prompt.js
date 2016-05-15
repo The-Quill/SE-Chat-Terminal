@@ -5,6 +5,8 @@ var Promise = require('bluebird');
 var REPL = readline.createInterface(process.stdin, process.stdout);
 var core = require("./chat_modules/core");
 
+
+
 var properties = {
     say: {
         domain: {
@@ -46,7 +48,7 @@ var properties = {
     },
     join: {
         domain: {
-            description: "Chat Domain (abbreviated)",
+            description: colors.magenta("Chat Domain (abbreviated)"),
             pattern: /[mse|so|se]/i,
             message: "Please enter either ".bold.red +
                 "MSE".bold.white +
@@ -55,14 +57,30 @@ var properties = {
                 "as an abbreviated chat domain".bold.red
         },
         "room_id": {
-            description: "room id",
+            description: colors.magenta("Room ID"),
+            pattern: /^[0-9]+$/,
+            message: colors.bold.red("Room ID must be only numbers")
+        }
+    },
+    pingable: {
+        domain: {
+            description: colors.magenta("Chat Domain (abbreviated)"),
+            pattern: /[mse|so|se]/i,
+            message: "Please enter either ".bold.red +
+                "MSE".bold.white +
+                ", ".bold.red + "SO".bold.white +
+                " or ".bold.red + "SE".bold.white +
+                "as an abbreviated chat domain".bold.red
+        },
+        "room_id": {
+            description: colors.magenta("Room ID"),
             pattern: /^[0-9]+$/,
             message: colors.bold.red("Room ID must be only numbers")
         }
     },
     star: {
         domain: {
-            description: "Chat Domain (abbreviated)",
+            description: colors.magenta("Chat Domain (abbreviated)"),
             pattern: /[mse|so|se]/i,
             message: "Please enter either ".bold.red +
                 "MSE".bold.white +
@@ -101,7 +119,6 @@ var formattedCommandInstructions = [
 ];
 var commands = {
     say: function(chatDomainUnfixed, roomId, message) {
-        console.log(arguments);
         var chatDomain = core.chatAbbreviationToFull(chatDomainUnfixed);
         core.actions.send(chatDomain, roomId, message);
     },
@@ -124,6 +141,19 @@ var commands = {
     leave: function(chatDomainUnfixed, roomId) {
         var chatDomain = core.chatAbbreviationToFull(chatDomainUnfixed);
         core.actions.leave(chatDomain, roomId);
+    },
+    pingable: function(chatDomainUnfixed, roomId) {
+        var chatDomain = core.chatAbbreviationToFull(chatDomainUnfixed);
+        core.actions.pingable(chatDomain, roomId).then(function(response){
+            try {
+                var users = JSON.parse(response).map(function(user){
+                    console.log(user[1]);
+                });
+            } catch (e) {
+                return false;
+            }
+
+        });
     }
 };
 
@@ -210,7 +240,20 @@ console.info = function() {
 console.error = function() {
     fixedPrint("error", arguments);
 };
-
+var HTMLtoMarkdown = function(string){
+    if (string.indexOf('<') !== -1){
+        var dom = cheerio.load(string);
+        var post = dom(".ob-post-title");
+        if (post != null){
+            return "[" + post.text + "](" + post.attr("href") + ")";
+        }
+        post = dom(".ob-image a");
+        if (post != null){
+            return "![" + post.attr('alt') + "](" + post.attr("href") + ")";
+        }
+    }
+    return string;
+}
 var messageFormatting = {
     room: function(event) {
         return colors.green("[") +
@@ -226,7 +269,7 @@ var messageFormatting = {
         return colors.blue(string);
     },
     content: function(event) {
-        return colors.green(event.content);
+        return colors.green(HTMLtoMarkdown(event.content));
     },
     edited: function(event) {
         var maxStringLength = 25;

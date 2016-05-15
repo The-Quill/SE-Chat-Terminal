@@ -22,6 +22,17 @@ var actions = {
             jar: domainVars.jars[domain]
         });
     },
+    pingable: function(domain, roomId) {
+        if (!domain || !roomId) {
+            console.log("You're missing a part of that argument");
+            return;
+        }
+        var fkey = domainVars.fkey[domain];
+        return request.getAsync({
+            url: "http://chat." + domain + ".com/rooms/pingable/" + roomId,
+            jar: domainVars.jars[domain]
+        });
+    },
     leave: function(domain, roomId) {
         if (!domain || !roomId) {
             console.log("You're missing a part of that argument");
@@ -41,7 +52,7 @@ var actions = {
             console.log("You're missing a part of that command");
             return;
         }
-        request.post({
+        request.postAsync({
             url: "http://chat." + domain + ".com/chats/" + roomId + "/messages/new",
             form: {
                 fkey: domainVars.fkey[domain],
