@@ -6,6 +6,26 @@ var Promise = require('bluebird');
 var REPL = readline.createInterface(process.stdin, process.stdout);
 var core = require("./chat_modules/core");
 
+var columnedPrint = function(columnLimit, dataSet, titleString){
+    var rows = [];
+    var currentRow = [];
+    dataSet.map(function(dataItem){
+        if (currentRow.length !== columnLimit){
+            currentRow.push(dataItem);
+        } else {
+            rows.push(currentRow);
+            currentRow = [dataItem];
+        }
+    });
+    if (currentRow.length != 0){
+        rows.push(currentRow);
+    }
+    console.log(titleString);
+    rows.forEach(function(row){
+        console.log(row.join(', '));
+    });
+}
+
 var properties = {
     say: {
         domain: {
@@ -77,6 +97,11 @@ var properties = {
             message: colors.bold.red("Room ID must be only numbers")
         }
     },
+    roomlist: {
+        domain: {
+            description: colors.magenta("Chat Domain (abbreviated)")
+        }
+    },
     star: {
         domain: {
             description: colors.magenta("Chat Domain (abbreviated)"),
@@ -117,6 +142,7 @@ var formattedCommandInstructions = [
     "/delete".bold.white + " to delete a message".yellow,
     "/edit".bold.white + " to edit a message".yellow,
     "/pingable".bold.white + " to see who you can ping".yellow,
+    "/roomlist".bold.white + " to see the roomlist".yellow,
     "/clear".bold.white + " to clear the chat window".yellow
 ];
 var commands = {
@@ -144,6 +170,10 @@ var commands = {
         var chatDomain = core.chatAbbreviationToFull(chatDomainUnfixed);
         core.actions.leave(chatDomain, roomId);
     },
+    roomlist: function(chatDomain){
+        var rooms = core.actions.roomlist(chatDomain);
+        columnedPrint(3, rooms, "The available rooms are: ");
+    },
     clear: function(){
         var lines = process.stdout.getWindowSize()[1];
         for(var i = 0; i < lines; i++) {
@@ -154,25 +184,11 @@ var commands = {
         var chatDomain = core.chatAbbreviationToFull(chatDomainUnfixed);
         core.actions.pingable(chatDomain, roomId).then(function(response){
             try {
-                var rows = [];
-                var currentRow = [];
-                var users = JSON.parse(response.body).map(function(user){
-                    var name = user[1];
-                    if (currentRow.length !== 6){
-                        currentRow.push(name);
-                    } else {
-                        rows.push(currentRow);
-                        currentRow = [name];
-                    }
-                });
-                console.log('Current users are: ');
-                rows.forEach(function(row){
-                    console.log(row.join(', '));
-                });
+                var users = JSON.parse(response.body).map(function(user){ return user[1] });
+                columnedPrint(6, users, "columnedPrint")
             } catch (e) {
                 return false;
             }
-
         });
     }
 };
@@ -188,11 +204,13 @@ var handleInput = function(STDIN){
             previousPromise = previousPromise.then(function(){
                 return new Promise(function(resolve, reject){
                     REPL.question(subCommand.description + '> '.green.bold, function(response){
+                        if (!subCommand.hasOwnProperty('pattern')){
+                            resolve(response);
+                        }
                         if (response.match(subCommand.pattern) != null){
                             storedValues[subCommandName] = response;
-                            resolve(response);
                         } else {
-                            console.log(subCommand.message);
+                            console.log(subCommand.message || "Wrong answer, punk. Try again.");
                             reject(response);
                         }
                     });
@@ -261,17 +279,27 @@ console.error = function() {
     fixedPrint("error", arguments);
 };
 var HTMLtoMarkdown = function(string){
-    if (string.indexOf('<') !== -1){
-        var dom = cheerio.load(string);
-        var post = dom(".ob-post-title a");
-        if (post != null){
-            return "[" + post.text() + "](" + post.attr("href") ? post.attr("href").replace('//', 'http://') : '' + ")";
-        }
-        post = dom(".ob-image a");
-        if (post != null){
-            return "![" + post.attr('alt') + "](" + post.attr("href") + ")";
-        }
-    }
+    // var globals = {
+    //     strike: '---',
+    //     i: '_',
+    //     b: '**'
+    // };
+    // // Object.keys(globals).forEach(function(global){
+    // //     var element =
+    // //     dom(global).parent.html(dom(global).parent.html().replace('<' + global + '>'));
+    // // });
+    // if (string.indexOf('<') !== -1){
+    //     var dom = cheerio.load(string);
+    //     var post = dom(".ob-post-title a");
+    //     if (post != null){
+    //         return "[" + post.text() + "](" + post.attr("href") + ")";
+    //     }
+    //     post = dom(".ob-image a");
+    //     if (post != null){
+    //         return "![" + post.attr('alt') + "](" + post.attr("href") + ")";
+    //     }
+    // }
+
     return string;
 }
 var messageFormatting = {
@@ -280,7 +308,7 @@ var messageFormatting = {
             colors.bold.white(event.room_id) +
             colors.green(": ") +
             colors.bold.white(event.room_name) +
-            colors.green("]");
+            colors.green("] ");
     },
     user: function(event) {
         return colors.bold.yellow(event.user_name);
