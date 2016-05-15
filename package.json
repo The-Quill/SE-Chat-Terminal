@@ -29,12 +29,13 @@
     "magic"
   ],
   "dependencies": {
-    "bluebird": "*",
-    "request": "*",
-    "cheerio": "*",
-    "ws": "*",
-    "colors": "*",
-    "prompt": "*"
+    "bluebird": "^3.3.5",
+    "cheerio": "^0.20.0",
+    "colors": "^1.1.2",
+    "prompt": "^1.0.0",
+    "request": "^2.72.0",
+    "util": "^0.10.3",
+    "ws": "^1.1.0"
   },
   "devDependencies": {
     "babel": "^6.5.2",
