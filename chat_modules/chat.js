@@ -1,25 +1,27 @@
-const config = require('./config');
-const ITEMS = {
+"use strict";
+var config = require("./config");
+var ITEMS = {
     messages: {},
     stars: {},
     flags: {},
     lastEvent: {}
 };
-var noFormattingLinked = function(){
+var noFormattingLinked = function() {
     throw new Error("There is no formatting linked.");
-}
+};
 var messageFormatting = {
     room: noFormattingLinked,
     user: noFormattingLinked,
     activity: noFormattingLinked,
     content: noFormattingLinked,
     edited: noFormattingLinked,
-    messageId: noFormattingLinked
+    messageId: noFormattingLinked,
+    connection: noFormattingLinked
 };
-var setMessageFormatting = function(formatting){
+var setMessageFormatting = function(formatting) {
     messageFormatting = formatting;
-}
-const EVENT_TYPES = {
+};
+var EVENT_TYPES = {
     MessagePosted: 1,
     MessageEdited: 2,
     UserEntered: 3,
@@ -36,17 +38,18 @@ const EVENT_TYPES = {
     MessageMovedIn: 20
 };
 
-function convert(str) {
-    return !str ? "" :
-        str.replace(/&amp;/g, "&")
-           .replace(/&gt;/g, ">")
-           .replace(/&lt;/g, "<")
-           .replace(/&quot;/g, "\"")
-           .replace(/&#39;/g, "'");
-}
+var convert = function(str) {
+    return !str ? "" // eslint-disable-line no-negated-condition
+    : str.replace(/&amp;/g, "&")
+         .replace(/&gt;/g, ">")
+         .replace(/&lt;/g, "<")
+         .replace(/&quot;/g, "\"")
+         .replace(/&#39;/g, "'");
+};
 
-function processEvent(event) {
-    if (event.content == ITEMS.lastEventContent) {
+/* eslint-disable complexity, max-statements */
+var processEvent = function(event) {
+    if (event.content === ITEMS.lastEventContent) {
         return false;
     }
     ITEMS.lastEventContent = event.content;
@@ -54,30 +57,31 @@ function processEvent(event) {
     switch (event.event_type) {
         case EVENT_TYPES.MessagePosted:
             console.log(
-                messageFormatting.room(event) ,
+                messageFormatting.room(event),
                 messageFormatting.user(event) +
-                messageFormatting.activity(': ') +
+                messageFormatting.activity(": ") +
                 messageFormatting.content(event)
             );
             ITEMS.messages[event.message_id] = event.content;
             break;
         case EVENT_TYPES.MessageEdited:
             var message = ITEMS.messages[event.message_id];
-            if (typeof message != "undefined" && typeof message == "string") {
+            if (typeof message !== "undefined" && typeof message === "string") {
                 console.log(
                     messageFormatting.room(event) +
-                    messageFormatting.activity(" edited their post of '") +
+                    messageFormatting.user(event) +
+                    messageFormatting.activity(" edited their post of \"") +
                     messageFormatting.edited(event) +
-                    messageFormatting.activity("' to say: ") +
+                    messageFormatting.activity("\" to say: ") +
                     messageFormatting.content(event)
                 );
             } else {
                 console.log(
-                    messageFormatting.room(event) ,
+                    messageFormatting.room(event),
                     messageFormatting.user(event) +
                     messageFormatting.activity(" edited a post to say: ") +
                     messageFormatting.content(event)
-                )
+                );
             }
             ITEMS.messages[event.message_id] = event.content;
             break;
@@ -105,7 +109,7 @@ function processEvent(event) {
             );
             break;
         case EVENT_TYPES.MessageStarred:
-            if (!event.message_stars){
+            if (!event.message_stars) {
                 delete ITEMS.stars[event.message_id];
                 return;
             }
@@ -137,15 +141,15 @@ function processEvent(event) {
             console.log(messageFormatting.content(event));
             break;
         case EVENT_TYPES.MessageDeleted:
-            if (!(event.message_id in ITEMS.messages)) {
+            if (!ITEMS.messages.hasOwnProperty(event.message_id)) { // eslint-disable-line no-negated-condition
                 console.log(
-                    messageFormatting.room(event) ,
+                    messageFormatting.room(event),
                     messageFormatting.user(event) +
                     messageFormatting.activity(" deleted a message")
                 );
             } else {
                 console.log(
-                    messageFormatting.room(event) ,
+                    messageFormatting.room(event),
                     messageFormatting.user(event) +
                     messageFormatting.activity(" deleted a message of: ") +
                     messageFormatting.messageId(event)
@@ -159,7 +163,7 @@ function processEvent(event) {
                 messageFormatting.room(event) +
                 messageFormatting.activity("!")
             );
-            if (event.content){
+            if (event.content) {
                 console.log(messageFormatting.content(event));
             }
             break;
@@ -173,7 +177,7 @@ function processEvent(event) {
             break;
         case EVENT_TYPES.MessageReply:
             console.log(
-                messageFormatting.room(event) ,
+                messageFormatting.room(event),
                 messageFormatting.user(event) +
                 messageFormatting.activity(" replied to you!")
             );
@@ -197,12 +201,9 @@ function processEvent(event) {
             console.log(messageFormatting.content(event));
             break;
     }
-}
+};
 
-function removeMessage() {
-    delete messages[Object.keys(messages)[0]];
-}
-
+/* eslint-enable complexity, max-statements */
 module.exports = {
     processEvent: processEvent,
     convert: convert,
