@@ -1,125 +1,93 @@
-const prompt = require('prompt');
-const colors = require('colors');
-const core   = require('./chat_modules/core');
-const Promise= require('bluebird');
+"use strict";
+var colors = require("colors");
+var readline = require('readline');
+var Promise = require('bluebird');
+var REPL = readline.createInterface(process.stdin, process.stdout);
+var core = require("./chat_modules/core");
 
-if (typeof Object.assign != 'function') {
-    (function() {
-        Object.assign = function(target) {
-            'use strict';
-            if (target === undefined || target === null) {
-                throw new TypeError('Cannot convert undefined or null to object');
-            }
-
-            var output = Object(target);
-            for (var index = 1; index < arguments.length; index++) {
-                var source = arguments[index];
-                if (source !== undefined && source !== null) {
-                    for (var nextKey in source) {
-                        if (source.hasOwnProperty(nextKey)) {
-                            output[nextKey] = source[nextKey];
-                        }
-                    }
-                }
-            }
-            return output;
-        };
-    })();
-}
-prompt.message = "";
 var properties = {
     say: {
-        properties: {
-            domain: {
-                description: colors.magenta('Chat Domain (abbreviated)'),
-                pattern: /[mse|so|se]/i,
-                message: 'Please enter either '.bold.red +
-                    'MSE'.bold.white +
-                    ', '.bold.red + 'SO'.bold.white +
-                    ' or '.bold.red + 'SE'.bold.white +
-                    ' as an abbreviated chat domain'.bold.red
-            },
-            'room_id': {
-                description: colors.magenta('Room ID'),
-                pattern: /^[0-9]+$/,
-                message: colors.red('Room ID must be only numbers')
-            },
-            message: {
-                description: colors.magenta("The message")
-            }
+        domain: {
+            description: colors.magenta("Chat Domain (abbreviated)"),
+            pattern: /^[mse|so|se]/i,
+            message: "Please enter either ".bold.red +
+                "MSE".bold.white +
+                ", ".bold.red + "SO".bold.white +
+                " or ".bold.red + "SE".bold.white +
+                " as an abbreviated chat domain".bold.red
+        },
+        "room_id": {
+            description: colors.magenta("Room ID"),
+            pattern: /^[0-9]+$/,
+            message: colors.red("Room ID must be only numbers")
+        },
+        message: {
+            description: colors.magenta("The message")
         }
     },
     edit: {
-        properties: {
-            domain: {
-                description: colors.magenta('Chat Domain (abbreviated)'),
-                pattern: /[mse|so|se]/i,
-                message: 'Please enter either '.bold.red +
-                    'MSE'.bold.white +
-                    ', '.bold.red + 'SO'.bold.white +
-                    ' or '.bold.red + 'SE'.bold.white +
-                    ' as an abbreviated chat domain'.bold.red
-            },
-            'message_id': {
-                description: colors.magenta('Message ID'),
-                pattern: /^[0-9]+$/,
-                message: colors.red('Message ID must be only numbers')
-            },
-            message: {
-                description: colors.magenta("The message")
-            }
+        domain: {
+            description: colors.magenta("Chat Domain (abbreviated)"),
+            pattern: /[mse|so|se]/i,
+            message: "Please enter either ".bold.red +
+                "MSE".bold.white +
+                ", ".bold.red + "SO".bold.white +
+                " or ".bold.red + "SE".bold.white +
+                " as an abbreviated chat domain".bold.red
+        },
+        "message_id": {
+            description: colors.magenta("Message ID"),
+            pattern: /^[0-9]+$/,
+            message: colors.red("Message ID must be only numbers")
+        },
+        message: {
+            description: colors.magenta("The message")
         }
     },
     join: {
-        properties: {
-            domain: {
-                description: 'Chat Domain (abbreviated)',
-                pattern: /[mse|so|se]/i,
-                message: 'Please enter either '.bold.red +
-                    'MSE'.bold.white +
-                    ', '.bold.red + 'SO'.bold.white +
-                    ' or '.bold.red + 'SE'.bold.white +
-                    'as an abbreviated chat domain'.bold.red
-            },
-            'room_id': {
-                description: 'room id',
-                pattern: /^[0-9]+$/,
-                message: colors.bold.red('Room ID must be only numbers')
-            }
+        domain: {
+            description: "Chat Domain (abbreviated)",
+            pattern: /[mse|so|se]/i,
+            message: "Please enter either ".bold.red +
+                "MSE".bold.white +
+                ", ".bold.red + "SO".bold.white +
+                " or ".bold.red + "SE".bold.white +
+                "as an abbreviated chat domain".bold.red
+        },
+        "room_id": {
+            description: "room id",
+            pattern: /^[0-9]+$/,
+            message: colors.bold.red("Room ID must be only numbers")
         }
     },
     star: {
-        properties: {
-            domain: {
-                description: 'Chat Domain (abbreviated)',
-                pattern: /[mse|so|se]/i,
-                message: 'Please enter either '.bold.red +
-                    'MSE'.bold.white +
-                    ', '.bold.red + 'SO'.bold.white +
-                    ' or '.bold.red + 'SE'.bold.white +
-                    'as an abbreviated chat domain'.bold.red
-            },
-            'message_id': {
-                description: 'Message id',
-                pattern: /^[0-9]+$/,
-                message: colors.bold.red('Message ID must be only numbers')
-            }
+        domain: {
+            description: "Chat Domain (abbreviated)",
+            pattern: /[mse|so|se]/i,
+            message: "Please enter either ".bold.red +
+                "MSE".bold.white +
+                ", ".bold.red + "SO".bold.white +
+                " or ".bold.red + "SE".bold.white +
+                "as an abbreviated chat domain".bold.red
+        },
+        "message_id": {
+            description: "Message id",
+            pattern: /^[0-9]+$/,
+            message: colors.bold.red("Message ID must be only numbers")
         }
     },
     commands: {
-        properties: {
-            command: {
-                description: 'Command name (do /help for a list of commands)',
-                message: colors.bold.red(
-                    "Command unrecognised. " +
-                    "If this command shows up in /help, " +
-                    "please leave an issue on the GitHub repo"
-                )
-            }
+        command: {
+            description: "Command name (do /help for a list of commands)",
+            message: colors.bold.red(
+                "Command unrecognised. " +
+                "If this command shows up in /help, " +
+                "please leave an issue on the GitHub repo"
+            )
         }
     }
 };
-properties.leave  = properties.join;
+properties.leave = properties.join;
 properties.delete = properties.star;
 
 var formattedCommandInstructions = [
@@ -129,145 +97,157 @@ var formattedCommandInstructions = [
     "/leave".bold.white + " to leave a room".yellow,
     "/star".bold.white + " to star a message".yellow,
     "/delete".bold.white + " to delete a message".yellow,
-    "/edit".bold.white + " to edit a message".yellow,
-]
+    "/edit".bold.white + " to edit a message".yellow
+];
 var commands = {
-    say: function() {
-        prompt.get(properties.say, function(error, result) {
-            if (error) {
-                return (function(e) {
-                    console.log(e);
-                    return 1;
-                })(error);
-            }
-            var chatDomain = core.chatAbbreviationToFull(result.domain)
-            core.actions.send(chatDomain, result.room_id, result.message);
-        });
+    say: function(chatDomainUnfixed, roomId, message) {
+        console.log(arguments);
+        var chatDomain = core.chatAbbreviationToFull(chatDomainUnfixed);
+        core.actions.send(chatDomain, roomId, message);
     },
-    join: function() {
-        prompt.get(properties.join, function(error, result) {
-            if (error) {
-                return (function(e) {
-                    console.log(e);
-                    return 1;
-                })(error);
-            }
-            var chatDomain = core.chatAbbreviationToFull(result.domain)
-            core.actions.join(chatDomain, result.room_id);
-        });
+    join: function(chatDomainUnfixed, roomId) {
+        var chatDomain = core.chatAbbreviationToFull(chatDomainUnfixed);
+        core.actions.join(chatDomain, roomId);
     },
-    star: function() {
-        prompt.get(properties.star, function(error, result) {
-            if (error) {
-                return (function(e) {
-                    console.log(e);
-                    return 1;
-                })(error);
-            }
-            var chatDomain = core.chatAbbreviationToFull(result.domain)
-            core.actions.star(chatDomain, result.message_id);
-        });
+    star: function(chatDomainUnfixed, messageId) {
+        var chatDomain = core.chatAbbreviationToFull(chatDomainUnfixed);
+        core.actions.star(chatDomain, messageId);
     },
-    edit: function() {
-        prompt.get(properties.edit, function(error, result) {
-            if (error) {
-                return (function(e) {
-                    console.log(e);
-                    return 1;
-                })(error);
-            }
-            var chatDomain = core.chatAbbreviationToFull(result.domain);
-            core.actions.edit(chatDomain, result.message_id, result.message);
-        });
+    edit: function(chatDomainUnfixed, messageId, message) {
+        var chatDomain = core.chatAbbreviationToFull(chatDomainUnfixed);
+        core.actions.edit(chatDomain, message_id, message);
     },
-    delete: function() {
-        prompt.get(properties.delete, function(error, result) {
-            if (error) {
-                return (function(e) {
-                    console.log(e);
-                    return 1;
-                })(error);
-            }
-            var chatDomain = core.chatAbbreviationToFull(result.domain)
-            core.actions.delete(chatDomain, result.message_id);
-        });
+    delete: function(chatDomainUnfixed, messageId) {
+        var chatDomain = core.chatAbbreviationToFull(chatDomainUnfixed);
+        core.actions.delete(chatDomain, messageId);
     },
-    leave: function(){
-        prompt.get(properties.leave, function(error, result) {
-            if (error) {
-                return (function(e) {
-                    console.log(e);
-                    return 1;
-                })(error);
-            }
-            var chatDomain = core.chatAbbreviationToFull(result.domain)
-            core.actions.leave(chatDomain, result.room_id);
-        });
+    leave: function(chatDomainUnfixed, roomId) {
+        var chatDomain = core.chatAbbreviationToFull(chatDomainUnfixed);
+        core.actions.leave(chatDomain, roomId);
     }
-}
-function start() {
-    prompt.get(properties.commands, function(error, result) {
-        if (error) {
-            return (function(e) {
-                console.log(e);
-                return 1;
-            })(error);
-        }
-        var command = result.command.replace('/', '');
-        switch (command) {
+};
+
+var handleInput = function(STDIN){
+    var input = STDIN.replace('/', '');
+    var storedValues = {};
+    var previousPromise = Promise.resolve();
+    if (Object.keys(properties).indexOf(input) !== -1){
+        var commandPropertyPromises = [];
+        Object.keys(properties[input]).map(function(subCommandName){
+            var subCommand = properties[input][subCommandName];
+            previousPromise = previousPromise.then(function(){
+                return new Promise(function(resolve, reject){
+                    REPL.question(subCommand.description + '> '.green.bold, function(response){
+                        if (response.match(subCommand.pattern) != null){
+                            storedValues[subCommandName] = response;
+                            resolve(response);
+                        } else {
+                            console.log(subCommand.message);
+                            reject(response);
+                        }
+                    });
+                });
+            });
+        });
+        previousPromise.then(function(){
+            // The null needs to be used here so the scope of the function isn't defined.
+            // Read here for more info: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply
+            commands[input].apply(null, Object.keys(storedValues).map(function(valueName){
+                return storedValues[valueName];
+            }));
+        });
+    } else {
+        switch (input) {
             case "help":
-                formattedCommandInstructions.forEach(function(commandInstruction){
+                formattedCommandInstructions.forEach(function(commandInstruction) {
                     console.log(commandInstruction);
-                })
+                });
                 break;
             default:
-                if (!commands.hasOwnProperty(command)){
-                    console.log(
-                        colors.bold.red(
-                            "Command unrecognised. " +
-                            "If this command shows up in /help, " +
-                            "please leave an issue on the GitHub repo"
-                        )
-                    );
-                } else {
-                    commands[command]();
-                }
-                break;
+                console.log(
+                    colors.bold.red(
+                        "Command unrecognised. " +
+                        "If this command shows up in /help, " +
+                        "please leave an issue on the GitHub repo"
+                    )
+                );
         }
+    }
+    return new Promise(function(resolve){
+        resolve()
     });
 }
-const messageFormatting = {
-    room: function(event){
-        return colors.green('[') +
-        colors.bold.white(event.room_id) +
-        colors.green(': ') +
-        colors.bold.white(event.room_name) +
-        colors.green(']');
+
+var start = function(){
+    REPL.prompt();
+
+    REPL.on('line', function(STDIN) {
+        handleInput(STDIN).then(function(){
+            REPL.prompt();
+        });
+    })
+    .on('close', function(){ process.exit(0) });
+}
+// From here: http://stackoverflow.com/a/24519813/3296811
+var fixedPrint = function(type, args) {
+    var indent = Math.ceil((REPL.line.length + 3) / process.stdout.columns);
+    var text = require('util').format.apply(console, args);
+    REPL.output.write("\n\x1B[" + indent + "A\x1B[0J"); // No idea at all....
+    REPL.output.write(text + "\n");
+    REPL.output.write(Array(indent).join("\n\x1B[E"));
+    REPL._refreshLine();
+};
+
+console.log = function() {
+    fixedPrint("log", arguments);
+};
+console.warn = function() {
+    fixedPrint("warn", arguments);
+};
+console.info = function() {
+    fixedPrint("info", arguments);
+};
+console.error = function() {
+    fixedPrint("error", arguments);
+};
+
+var messageFormatting = {
+    room: function(event) {
+        return colors.green("[") +
+            colors.bold.white(event.room_id) +
+            colors.green(": ") +
+            colors.bold.white(event.room_name) +
+            colors.green("]");
     },
-    user: function(event){
+    user: function(event) {
         return colors.bold.yellow(event.user_name);
     },
-    activity: function(string){
+    activity: function(string) {
         return colors.blue(string);
     },
-    content: function(event){
+    content: function(event) {
         return colors.green(event.content);
     },
-    edited: function(event){
-        return colors.green(event.content.length > 25 ? event.content.substring(0, 12) + "..." : event.content);
+    edited: function(event) {
+        var maxStringLength = 25;
+        var editedStringLength = Math.ceil(maxStringLength / 2);
+        return colors.green(event.content.length > maxStringLength ? event.content.substring(0, editedStringLength) + "..." : event.content);
     },
-    changedRoomName: function(event){
+    changedRoomName: function(event) {
         var name = event.content.substring(0, event.content.lastIndexOf(" /"));
-        return colors.green('[') +
-        colors.bold.white(event.room_id) +
-        colors.green(': ') +
-        colors.bold.white(name) +
-        colors.green(']');
+        return colors.green("[") +
+            colors.bold.white(event.room_id) +
+            colors.green(": ") +
+            colors.bold.white(name) +
+            colors.green("]");
     },
-    messageId: function(event){
-        return colors.green(ITEMS.messages[event.message_id])
-    }
-}
+    messageId: function(event) {
+        return colors.green(event.message_id);
+    },
+    connection: function(event) {
+        return colors.green("Connecting to ") + colors.bold.white(event.name);
+    },
+};
 core.setMessageFormatting(messageFormatting);
 module.exports = {
     properties: properties,
