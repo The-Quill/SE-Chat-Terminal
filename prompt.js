@@ -30,7 +30,7 @@ var properties = {
     say: {
         domain: {
             description: colors.magenta("Chat Domain (abbreviated)"),
-            pattern: /^[mse|so|se]/i,
+            pattern: /^([m]?se|so)/i,
             message: "Please enter either ".bold.red +
                 "MSE".bold.white +
                 ", ".bold.red + "SO".bold.white +
