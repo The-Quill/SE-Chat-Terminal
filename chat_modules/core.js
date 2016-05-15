@@ -22,6 +22,30 @@ var actions = {
             jar: domainVars.jars[domain]
         });
     },
+    roomlist: function(domain){
+        var domainFixed = "";
+        if (domain != ''){
+            var construct = {
+                "mse": "MetaStackExchange",
+                "se": "StackExchange",
+                "so": "StackOverflow"
+            };
+            domainFixed = construct[domain.toLowerCase()];
+        }
+        var rooms = [];
+        if (config.room_domains.hasOwnProperty(domainFixed)){
+            Object.keys(config.room_domains[domainFixed].rooms).forEach(function(room){
+                rooms.push(config.room_domains[domainFixed].rooms[room].name);
+            });
+        } else {
+            Object.keys(config.room_domains).forEach(function(domainName){
+                Object.keys(config.room_domains[domainName].rooms).forEach(function(room){
+                    rooms.push(config.room_domains[domainName].rooms[room].name);
+                });
+            })
+        }
+        return rooms;
+    },
     pingable: function(domain, roomId) {
         if (!domain || !roomId) {
             console.log("You're missing a part of that argument");
