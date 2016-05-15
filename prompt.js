@@ -1,11 +1,10 @@
 "use strict";
 var colors = require("colors");
+var cheerio = require("cheerio");
 var readline = require('readline');
 var Promise = require('bluebird');
 var REPL = readline.createInterface(process.stdin, process.stdout);
 var core = require("./chat_modules/core");
-
-
 
 var properties = {
     say: {
@@ -146,8 +145,20 @@ var commands = {
         var chatDomain = core.chatAbbreviationToFull(chatDomainUnfixed);
         core.actions.pingable(chatDomain, roomId).then(function(response){
             try {
-                var users = JSON.parse(response).map(function(user){
-                    console.log(user[1]);
+                var rows = [];
+                var currentRow = [];
+                var users = JSON.parse(response.body).map(function(user){
+                    var name = user[1];
+                    if (currentRow.length !== 6){
+                        currentRow.push(name);
+                    } else {
+                        rows.push(currentRow);
+                        currentRow = [name];
+                    }
+                });
+                console.log('Current users are: ');
+                rows.forEach(function(row){
+                    console.log(row.join(', '));
                 });
             } catch (e) {
                 return false;
