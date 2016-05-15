@@ -115,8 +115,6 @@ There is an error message for this, but I'm still going to say it anyway.
 
 There's a few crucial things I need to fix before taking this to StackApps, and the attention of more than the beta users.
 
-Specifically, issues #3 and #12.
-
 I may convert this entirely to Python, as Python's input handling is so much smoother (and native).
 
 ---
