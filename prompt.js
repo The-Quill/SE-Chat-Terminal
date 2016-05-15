@@ -1,5 +1,6 @@
 "use strict";
 var colors = require("colors");
+var cheerio = require("cheerio");
 var readline = require('readline');
 var Promise = require('bluebird');
 var REPL = readline.createInterface(process.stdin, process.stdout);
@@ -46,7 +47,7 @@ var properties = {
     },
     join: {
         domain: {
-            description: "Chat Domain (abbreviated)",
+            description: colors.magenta("Chat Domain (abbreviated)"),
             pattern: /[mse|so|se]/i,
             message: "Please enter either ".bold.red +
                 "MSE".bold.white +
@@ -55,14 +56,30 @@ var properties = {
                 "as an abbreviated chat domain".bold.red
         },
         "room_id": {
-            description: "room id",
+            description: colors.magenta("Room ID"),
+            pattern: /^[0-9]+$/,
+            message: colors.bold.red("Room ID must be only numbers")
+        }
+    },
+    pingable: {
+        domain: {
+            description: colors.magenta("Chat Domain (abbreviated)"),
+            pattern: /[mse|so|se]/i,
+            message: "Please enter either ".bold.red +
+                "MSE".bold.white +
+                ", ".bold.red + "SO".bold.white +
+                " or ".bold.red + "SE".bold.white +
+                "as an abbreviated chat domain".bold.red
+        },
+        "room_id": {
+            description: colors.magenta("Room ID"),
             pattern: /^[0-9]+$/,
             message: colors.bold.red("Room ID must be only numbers")
         }
     },
     star: {
         domain: {
-            description: "Chat Domain (abbreviated)",
+            description: colors.magenta("Chat Domain (abbreviated)"),
             pattern: /[mse|so|se]/i,
             message: "Please enter either ".bold.red +
                 "MSE".bold.white +
@@ -85,7 +102,8 @@ var properties = {
                 "please leave an issue on the GitHub repo"
             )
         }
-    }
+    },
+    clear: {}
 };
 properties.leave = properties.join;
 properties.delete = properties.star;
@@ -97,11 +115,12 @@ var formattedCommandInstructions = [
     "/leave".bold.white + " to leave a room".yellow,
     "/star".bold.white + " to star a message".yellow,
     "/delete".bold.white + " to delete a message".yellow,
-    "/edit".bold.white + " to edit a message".yellow
+    "/edit".bold.white + " to edit a message".yellow,
+    "/pingable".bold.white + " to see who you can ping".yellow,
+    "/clear".bold.white + " to clear the chat window".yellow
 ];
 var commands = {
     say: function(chatDomainUnfixed, roomId, message) {
-        console.log(arguments);
         var chatDomain = core.chatAbbreviationToFull(chatDomainUnfixed);
         core.actions.send(chatDomain, roomId, message);
     },
@@ -124,6 +143,37 @@ var commands = {
     leave: function(chatDomainUnfixed, roomId) {
         var chatDomain = core.chatAbbreviationToFull(chatDomainUnfixed);
         core.actions.leave(chatDomain, roomId);
+    },
+    clear: function(){
+        var lines = process.stdout.getWindowSize()[1];
+        for(var i = 0; i < lines; i++) {
+            console.log('\r\n');
+        }
+    },
+    pingable: function(chatDomainUnfixed, roomId) {
+        var chatDomain = core.chatAbbreviationToFull(chatDomainUnfixed);
+        core.actions.pingable(chatDomain, roomId).then(function(response){
+            try {
+                var rows = [];
+                var currentRow = [];
+                var users = JSON.parse(response.body).map(function(user){
+                    var name = user[1];
+                    if (currentRow.length !== 6){
+                        currentRow.push(name);
+                    } else {
+                        rows.push(currentRow);
+                        currentRow = [name];
+                    }
+                });
+                console.log('Current users are: ');
+                rows.forEach(function(row){
+                    console.log(row.join(', '));
+                });
+            } catch (e) {
+                return false;
+            }
+
+        });
     }
 };
 
@@ -210,7 +260,20 @@ console.info = function() {
 console.error = function() {
     fixedPrint("error", arguments);
 };
-
+var HTMLtoMarkdown = function(string){
+    if (string.indexOf('<') !== -1){
+        var dom = cheerio.load(string);
+        var post = dom(".ob-post-title a");
+        if (post != null){
+            return "[" + post.text() + "](" + post.attr("href") ? post.attr("href").replace('//', 'http://') : '' + ")";
+        }
+        post = dom(".ob-image a");
+        if (post != null){
+            return "![" + post.attr('alt') + "](" + post.attr("href") + ")";
+        }
+    }
+    return string;
+}
 var messageFormatting = {
     room: function(event) {
         return colors.green("[") +
@@ -226,7 +289,7 @@ var messageFormatting = {
         return colors.blue(string);
     },
     content: function(event) {
-        return colors.green(event.content);
+        return colors.green(HTMLtoMarkdown(event.content));
     },
     edited: function(event) {
         var maxStringLength = 25;
