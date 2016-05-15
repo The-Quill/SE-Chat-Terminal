@@ -102,7 +102,8 @@ var properties = {
                 "please leave an issue on the GitHub repo"
             )
         }
-    }
+    },
+    clear: {}
 };
 properties.leave = properties.join;
 properties.delete = properties.star;
@@ -114,7 +115,9 @@ var formattedCommandInstructions = [
     "/leave".bold.white + " to leave a room".yellow,
     "/star".bold.white + " to star a message".yellow,
     "/delete".bold.white + " to delete a message".yellow,
-    "/edit".bold.white + " to edit a message".yellow
+    "/edit".bold.white + " to edit a message".yellow,
+    "/pingable".bold.white + " to see who you can ping".yellow,
+    "/clear".bold.white + " to clear the chat window".yellow
 ];
 var commands = {
     say: function(chatDomainUnfixed, roomId, message) {
@@ -140,6 +143,12 @@ var commands = {
     leave: function(chatDomainUnfixed, roomId) {
         var chatDomain = core.chatAbbreviationToFull(chatDomainUnfixed);
         core.actions.leave(chatDomain, roomId);
+    },
+    clear: function(){
+        var lines = process.stdout.getWindowSize()[1];
+        for(var i = 0; i < lines; i++) {
+            console.log('\r\n');
+        }
     },
     pingable: function(chatDomainUnfixed, roomId) {
         var chatDomain = core.chatAbbreviationToFull(chatDomainUnfixed);
@@ -254,9 +263,9 @@ console.error = function() {
 var HTMLtoMarkdown = function(string){
     if (string.indexOf('<') !== -1){
         var dom = cheerio.load(string);
-        var post = dom(".ob-post-title");
+        var post = dom(".ob-post-title a");
         if (post != null){
-            return "[" + post.text + "](" + post.attr("href") + ")";
+            return "[" + post.text() + "](" + post.attr("href") + ")";
         }
         post = dom(".ob-image a");
         if (post != null){
