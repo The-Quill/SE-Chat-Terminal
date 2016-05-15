@@ -1,6 +1,7 @@
 {
     "debug": false,
     "star_threshold": 5,
+    "default_se_to_login_into": "codereview",
     "room_domains": {
         "StackExchange": {
             "rooms": {
