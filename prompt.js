@@ -265,7 +265,7 @@ var HTMLtoMarkdown = function(string){
         var dom = cheerio.load(string);
         var post = dom(".ob-post-title a");
         if (post != null){
-            return "[" + post.text() + "](" + post.attr("href") + ")";
+            return "[" + post.text() + "](" + post.attr("href") ? post.attr("href").replace('//', 'http://') : '' + ")";
         }
         post = dom(".ob-image a");
         if (post != null){
