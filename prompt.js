@@ -204,11 +204,14 @@ var handleInput = function(STDIN){
             previousPromise = previousPromise.then(function(){
                 return new Promise(function(resolve, reject){
                     REPL.question(subCommand.description + '> '.green.bold, function(response){
-                        if (!subCommand.hasOwnProperty('pattern')){
+                        if (Object.keys(subCommand).indexOf('pattern') === -1 && Object.keys(subCommand).indexOf('message') === -1){
+                            storedValues[subCommandName] = response;
                             resolve(response);
+                            return;
                         }
                         if (response.match(subCommand.pattern) != null){
                             storedValues[subCommandName] = response;
+                            resolve(response);
                         } else {
                             console.log(subCommand.message || "Wrong answer, punk. Try again.");
                             reject(response);
