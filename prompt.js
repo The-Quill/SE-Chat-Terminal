@@ -153,7 +153,6 @@ var commands = {
         });
     },
     say: function(chatDomainUnfixed, roomId, message) {
-        console.log(arguments);
         var chatDomain = core.chatAbbreviationToFull(chatDomainUnfixed);
         core.actions.send(chatDomain, roomId, message);
     },
@@ -225,20 +224,17 @@ var handleInput = function(STDIN){
         var potentialStringArray = commandArgs.splice(subCommandProperties.length - 1);
         commandArgs[subCommandProperties.length - 1] = potentialStringArray.join(' ');
     }
-    for (var i = 0; i < subCommandProperties.length; i++){
-        var subCommandName = subCommandProperties[i];
-        console.log(subCommandProperties);
+    subCommandProperties.forEach(function(subCommandName){
         var subCommand = properties[commandName][subCommandName];
         previousPromise = previousPromise.then(function(){
             return new Promise(function(resolve, reject){
                 if (commandArgs.length > commandArgsIndex){
-                    console.log(subCommandName, commandArgs[commandArgsIndex]);
                     if (Object.keys(subCommand).indexOf('pattern') === -1 && Object.keys(subCommand).indexOf('message') === -1){
-                        storedValues[subCommandName] = response;
-                        resolve(response);
+                        storedValues[subCommandName] = commandArgs[commandArgsIndex];
+                        resolve(commandArgs[commandArgsIndex]);
                     }
                     if (commandArgs[commandArgsIndex].match(subCommand.pattern) != null){
-                        storedValues[subCommandName] = commandArgs[commandArgsIndex++];
+                        storedValues[subCommandName] = commandArgs[commandArgsIndex];
                         resolve(commandArgs[commandArgsIndex])
                     } else {
                         console.log(subCommand.message || "Wrong answer, punk. Try again.");
@@ -262,7 +258,7 @@ var handleInput = function(STDIN){
                 }
             });
         });
-    }
+    });
     previousPromise.then(function(){
         // The null needs to be used here so the scope of the function isn't defined.
         // Read here for more info: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply
