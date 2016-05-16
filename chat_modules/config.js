@@ -18,18 +18,28 @@ var config = {
     user: {},
     rooms: {}
 };
+var processValues = {};
+process.argv.forEach(function(value) {
+    if (value.indexOf('email=') !== -1) {
+        processValues['email'] = value.replace('email=', '');
+    } else if (value.indexOf('password=') !== -1) {
+        processValues['password'] = value.replace('password=', '');
+    }
+});
+
 
 config.debug = loadedConfig.debug || true;
 config.star_threshold = loadedConfig.star_threshold || 5;
 config.default_se_to_login_into = loadedConfig.default_se_to_login_into;
-if (!process.env.hasOwnProperty("EMAIL")) {
+config.user.email = process.env.EMAIL || processValues.email;
+config.user.password = process.env.PASSWORD || processValues.password;
+
+if (!config.user.email) {
     throw new Error("Email config missing");
 }
-if (!process.env.hasOwnProperty("PASSWORD")) {
+if (!config.user.password) {
     throw new Error("password config missing");
 }
-config.user.email = process.env.EMAIL;
-config.user.password = process.env.PASSWORD;
 
 config.room_domains = loadedConfig.room_domains || {
     "StackExchange": {
