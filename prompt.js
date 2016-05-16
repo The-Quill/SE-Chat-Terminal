@@ -206,7 +206,7 @@ var handleInput = function(STDIN){
     var commandArgs = input.split(' ');
     var commandName = commandArgs.splice(0, 1);
     var commandArgsIndex = 0;
-    if (!Object.keys(properties).includes(commandName)){
+    if (!Object.keys(properties).indexOf(commandName) === -1){
         console.log(Object.keys(properties).indexOf(commandName))
         console.log(
             colors.bold.red(
