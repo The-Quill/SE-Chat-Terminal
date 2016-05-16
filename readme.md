@@ -22,7 +22,7 @@ To get started, build the required plugins by calling:
 
 Then, read your username and password in using the command line tool, `read`:
 
-     read PASSWD
+     read -s PASSWD
      <enter your password>
      read EMAIL
      <enter your email>
