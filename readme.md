@@ -20,11 +20,16 @@ To get started, build the required plugins by calling:
 
      npm install
 
-Then, add your username and password to the relevant strings to your environment place (`.bash_profile` on Mac/Linux, or `.zshenv` if using `zsh`) by adding something like:
+Then, read your username and password in using the command line tool, `read`:
 
-     export EMAIL=you@example.com
-     export PASSWORD=password
+     read PASSWD
+     <enter your password>
+     read EMAIL
+     <enter your email>
 
+and then you can use the `email=` and `password=` flags to specify which:
+
+    node start email=$EMAIL password=$PASSWD
 
 In the main folder, you'll find a `config-SAMPLE.json`
 
