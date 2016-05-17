@@ -128,7 +128,8 @@ var properties = {
             )
         }
     },
-    clear: {}
+    clear: {},
+    help: {}
 };
 properties.leave = properties.join;
 properties.delete = properties.star;
@@ -146,6 +147,11 @@ var formattedCommandInstructions = [
     "/clear".bold.white + " to clear the chat window".yellow
 ];
 var commands = {
+    help: function(){
+        formattedCommandInstructions.forEach(function(commandInstruction) {
+            console.log(commandInstruction);
+        });
+    },
     say: function(chatDomainUnfixed, roomId, message) {
         var chatDomain = core.chatAbbreviationToFull(chatDomainUnfixed);
         core.actions.send(chatDomain, roomId, message);
@@ -194,15 +200,48 @@ var commands = {
 };
 
 var handleInput = function(STDIN){
-    var input = STDIN.replace('/', '');
     var storedValues = {};
     var previousPromise = Promise.resolve();
-    if (Object.keys(properties).indexOf(input) !== -1){
-        var commandPropertyPromises = [];
-        Object.keys(properties[input]).map(function(subCommandName){
-            var subCommand = properties[input][subCommandName];
-            previousPromise = previousPromise.then(function(){
-                return new Promise(function(resolve, reject){
+    var input = STDIN.replace('/', '');
+    var commandArgs = input.split(' ');
+    var commandName = commandArgs.splice(0, 1)[0];
+    var commandArgsIndex = 0;
+    if (Object.keys(properties).indexOf(commandName) === -1){
+        console.log(Object.keys(properties).indexOf(commandName))
+        console.log(
+            colors.bold.red(
+                "Command (" + commandName + ") unrecognised. " +
+                "If this command shows up in /help, " +
+                "please leave an issue on the GitHub repo"
+            )
+        );
+        return new Promise(function(resolve){
+            resolve()
+        });
+    }
+    var subCommandProperties = Object.keys(properties[commandName]);
+    if (commandArgs.length > subCommandProperties.length){
+        var potentialStringArray = commandArgs.splice(subCommandProperties.length - 1);
+        commandArgs[subCommandProperties.length - 1] = potentialStringArray.join(' ');
+    }
+    subCommandProperties.forEach(function(subCommandName){
+        var subCommand = properties[commandName][subCommandName];
+        previousPromise = previousPromise.then(function(){
+            return new Promise(function(resolve, reject){
+                if (commandArgs.length > commandArgsIndex){
+                    if (Object.keys(subCommand).indexOf('pattern') === -1 && Object.keys(subCommand).indexOf('message') === -1){
+                        storedValues[subCommandName] = commandArgs[commandArgsIndex];
+                        resolve(commandArgs[commandArgsIndex]);
+                    }
+                    if (commandArgs[commandArgsIndex].match(subCommand.pattern) != null){
+                        storedValues[subCommandName] = commandArgs[commandArgsIndex];
+                        resolve(commandArgs[commandArgsIndex])
+                    } else {
+                        console.log(subCommand.message || "Wrong answer, punk. Try again.");
+                        reject(commandArgs[commandArgsIndex])
+                    }
+                    commandArgsIndex++;
+                } else {
                     REPL.question(subCommand.description + '> '.green.bold, function(response){
                         if (Object.keys(subCommand).indexOf('pattern') === -1 && Object.keys(subCommand).indexOf('message') === -1){
                             storedValues[subCommandName] = response;
@@ -216,33 +255,17 @@ var handleInput = function(STDIN){
                             reject(response);
                         }
                     });
-                });
+                }
             });
         });
-        previousPromise.then(function(){
-            // The null needs to be used here so the scope of the function isn't defined.
-            // Read here for more info: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply
-            commands[input].apply(null, Object.keys(storedValues).map(function(valueName){
-                return storedValues[valueName];
-            }));
-        });
-    } else {
-        switch (input) {
-            case "help":
-                formattedCommandInstructions.forEach(function(commandInstruction) {
-                    console.log(commandInstruction);
-                });
-                break;
-            default:
-                console.log(
-                    colors.bold.red(
-                        "Command unrecognised. " +
-                        "If this command shows up in /help, " +
-                        "please leave an issue on the GitHub repo"
-                    )
-                );
-        }
-    }
+    });
+    previousPromise.then(function(){
+        // The null needs to be used here so the scope of the function isn't defined.
+        // Read here for more info: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply
+        commands[commandName].apply(null, Object.keys(storedValues).map(function(valueName){
+            return storedValues[valueName];
+        }));
+    });
     return new Promise(function(resolve){
         resolve()
     });
