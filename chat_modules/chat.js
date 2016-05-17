@@ -177,7 +177,7 @@ var processEvent = function(event) {
             break;
         case EVENT_TYPES.MessageReply:
             console.log(
-                messageFormatting.room(event),
+                messageFormatting.room(event) +
                 messageFormatting.user(event) +
                 messageFormatting.activity(" replied to you!")
             );
