@@ -1,6 +1,6 @@
-#SE Chat Terminal
+# SE Chat Terminal
 ---
-#What is this?
+# What is this?
 
 This is a chat client that runs in the terminal using SE's improptu chat APIs and the raw power of Node.JS.
 
@@ -14,7 +14,7 @@ It's still in early beta development, but the following commands/features work s
  - Being able to see deleted and edited messages originals (it's not a self-modifying feed like SE)
 
 ---
-#How to get started
+# How to get started
 
 To get started, build the required plugins by calling:
 
@@ -39,7 +39,7 @@ Navigate to the folder in Terminal/CMD, and call
 
      node start.js
 
-##config
+## config
 
 In the main folder, you'll find a `config-SAMPLE.json`
 
@@ -52,21 +52,21 @@ In the sample file, you'll find three variables that you'll need to interact wit
  - `star_threshold`
  - `room_domains`
 
- ##`debug`
+ ## `debug`
 
  `debug` is a boolean that represents whether you want system messages, (such as join responses, connection losses) to appear alongside the chat events in the main feed.
 
  (defaults to `false`)
 
  ---
- ##`star_threshold`
+ ## `star_threshold`
 
  `star_threshold` is an integer representing the amount of stars a post must get before it appears in the chat feed
 
  (defaults to 5)
 
  ---
- ##`room_domains`
+ ## `room_domains`
 
  This variable is a little more complicated.
 
@@ -88,7 +88,7 @@ They're structured where the room id is the key and inside that, you have
  - `name`
 
 ---
-##Sample config
+## Sample config
 
 Here is a sample config of chat.meta.stackexchange.com, where you connect to Tavern on the Meta upon startup
 >
@@ -104,7 +104,7 @@ Here is a sample config of chat.meta.stackexchange.com, where you connect to Tav
 ```
 
 ---
-#What you need to do to your SE account before you can use this:
+# What you need to do to your SE account before you can use this:
 
  - Make sure you have an SE, SO and MSE account with the minimum rep to talk in chat (15).
 
@@ -116,7 +116,7 @@ There is an error message for this, but I'm still going to say it anyway.
 
 
 ---
-#Where to from here?
+# Where to from here?
 
 There's a few crucial things I need to fix before taking this to StackApps, and the attention of more than the beta users.
 
@@ -125,6 +125,6 @@ Specifically, Milestone version 2.
 I may convert this entirely to Python, as Python's input handling is so much smoother (and native).
 
 ---
-#License
+# License
 
 This code is licensed under the MIT license.
