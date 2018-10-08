@@ -1,7 +1,7 @@
 {
-  "name": "Node-ChatBot",
+  "name": "se-chat-terminal",
   "version": "1.5.0",
-  "description": "A Node.JS chatbot for SE",
+  "description": "A Stack Exchange chat extension for the Terminal",
   "author": "Quill <seriouslyquill@gmail.com>",
   "contributors": [
     {
@@ -11,7 +11,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/The-Quill/SE-Chat-Websockets"
+    "url": "https://github.com/The-Quill/SE-Chat-Terminal"
   },
   "scripts": {
     "start": "node ws.js",
@@ -19,7 +19,7 @@
     "postdeploy": "echo ive deployed"
   },
   "bugs": {
-    "url": "https://github.com/The-Quill/SE-Chat-Websockets/issues"
+    "url": "https://github.com/The-Quill/SE-Chat-Terminal/issues"
   },
   "keywords": [
     "stackexchange",
@@ -30,12 +30,13 @@
   ],
   "dependencies": {
     "bluebird": "^3.3.5",
-    "cheerio": "^0.20.0",
+    "cheerio": "^0.22.0",
     "colors": "^1.1.2",
     "prompt": "^1.0.0",
     "request": "^2.72.0",
-    "util": "^0.10.3",
-    "ws": "^1.1.0"
+    "request-promise-native": "^1.0.5",
+    "util": "^0.11.0",
+    "ws": "^6.1.0"
   },
   "devDependencies": {
     "babel": "^6.5.2",
