@@ -198,7 +198,10 @@ const connectDomainRooms = async function (domainMultiCase, initialRoom, rooms) 
     },
     jar: domainVars.jars[domain]
   });
-
+  if (login.body.includes('The email or password is incorrect')){
+    console.log('Your username or password is incorrect. Please fix your config.')
+    process.exit(1)
+  }
   addCookie(login)
   global.log({ headers: login.headers, login: login.statusCode })
 
