@@ -11,6 +11,13 @@ const domainVars = {
   fkey: {},
   jars: {}
 };
+async function loadMessages(domain, roomid, count = 2) {
+  const { events } = await request.post(`https://chat.${domain}.com/chats/${roomid}/events?mode=Messages&msgCount=${count}`, {
+    form: { fkey: domainVars.fkey[domain] },
+    json: true
+  })
+  return events
+}
 const actions = {
   join: function (domain, roomId, fkey) {
     const fkeyProper = fkey || domainVars.fkey[domain];
@@ -237,6 +244,7 @@ const connectDomainRooms = async function (domainMultiCase, initialRoom, rooms) 
   } catch (err) {
     global.log({ jar: getCookies(), opts: err.options })
     // console.error(err)
+    process.exit(1)
   }
   global.log({ secondLevelResponse: secondLevelResponse.statusCode })
   if (secondLevelResponse.body.indexOf('<!DOCTYPE HTML PUBLIC') !== -1) {
@@ -259,6 +267,11 @@ const connectDomainRooms = async function (domainMultiCase, initialRoom, rooms) 
     jar: domainVars.jars[domain]
   }).then(res => addCookie(res)));
   await Promise.all(connectionPromises);
+  await Promise.all(Object.keys(rooms).map(async (roomName) => {
+    const room = rooms[roomName];
+    const events = await loadMessages(domain, room.room_id)
+    events.map(event => Object.assign({}, event, { room_name: room.name })).forEach(event => ChatHandler.processEvent(event))
+  }))
   time = Math.floor(Date.now() / 1000);
   await openWebSocket(url, time, domain)
   console.log(`Connected to all rooms on ${domain} domain successfully`);
