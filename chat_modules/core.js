@@ -170,7 +170,7 @@ const openWebSocket = function (url, time, domain) {
       const keys = Object.keys(message);
       keys.forEach(function (key) {
         if (message[key].e) { // eslint-disable-line id-length
-          console.log(message[key].e)
+          global.log(message[key].e)
           message[key].e.forEach(ChatHandler.processEvent); // eslint-disable-line id-length
         }
       });
