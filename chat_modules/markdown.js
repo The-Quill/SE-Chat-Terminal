@@ -22,7 +22,7 @@ const ansiPadStart = (string, length, delimiter = ' ') => {
 }
 
 const center = (text, length) => {
-  const all = [ ...text, ' '.repeat(length) ]
+  const all = [...text, ' '.repeat(length)]
   const highest = Math.max(...all.map(i => len(i)))
   const res = ansiAlign.center(all)
   res.pop()
@@ -45,7 +45,7 @@ const center = (text, length) => {
     }
     const [spacesStart] = startMatch
     let amount = highest - len(line)
-    lines.push(`${line}${' '.repeat(amount > len(spacesStart) ? len(spacesStart) : amount )}`)
+    lines.push(`${line}${' '.repeat(amount > len(spacesStart) ? len(spacesStart) : amount)}`)
   }
   return lines
 }
@@ -87,7 +87,8 @@ const spreadAcrossLines = (text, count = 0) => {
 
 const box = (lines = '', title = '', noSpace = false, centered = false) => {
   const padding = noSpace ? 0 : 2
-  let length = Math.max(...lines.split('\n').concat(title).map(line => len(line)))
+  let length = Math.max(...lines.split('\n').concat(title)
+    .map(line => len(line)))
   let print = text => ansiPadEnd(text, length + padding)
   let titleNeedsPadding = len(title) === length
   let extra = titleNeedsPadding ? brackets.horizontal.repeat(padding) : ''
@@ -106,7 +107,8 @@ const box = (lines = '', title = '', noSpace = false, centered = false) => {
     )
   }
   return `${brackets.tl}${extra}${ansiPadEnd(title.toString(), titleLength + padding, brackets.horizontal)}${extra}${brackets.tr}
-${lines.split('\n').map(line => `${brackets.vertical}${print(line)}${brackets.vertical}`).join('\n')}
+${lines.split('\n').map(line => `${brackets.vertical}${print(line)}${brackets.vertical}`)
+    .join('\n')}
 ${brackets.bl}${brackets.horizontal.repeat(length + padding)}${brackets.br}`
 }
 
@@ -154,7 +156,7 @@ const quote = {
       'serverfault.com': 'Server Fault',
       'meta.serverfault.com': 'Meta Server Fault',
       'superuser.com': 'Super User',
-      'meta.superuser.com': 'Meta Super User',
+      'meta.superuser.com': 'Meta Super User'
     }
     const sites = {
       'codereview': 'Code Review',
@@ -198,12 +200,15 @@ const quote = {
       'webapp': 'Web Applications',
       'webmasters': 'Webmasters',
       'wordpress': 'WordPress Development',
-      'worldbuilding': 'Worldbuilding',
+      'worldbuilding': 'Worldbuilding'
     }
     for (const [name, site] of Object.entries(sites)) {
       sites[`meta.${name}`] = `Meta ${site}`
     }
-    const hostname = u.hostname.split('.').reverse().slice(0, 2).reverse().join('.')
+    const hostname = u.hostname.split('.').reverse()
+      .slice(0, 2)
+      .reverse()
+      .join('.')
     let place = ''
     let match = Object.keys(urls).find(url => u.hostname.startsWith(url))
     if (match !== null) {
