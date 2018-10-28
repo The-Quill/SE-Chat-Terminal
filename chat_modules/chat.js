@@ -64,7 +64,7 @@ const processEvent = function (event) {
       )
       ITEMS.messages[event.message_id] = event.content
       break
-    case EVENT_TYPES.MessageEdited:
+    case EVENT_TYPES.MessageEdited: {
       const message = ITEMS.messages[event.message_id]
       if (typeof message !== 'undefined' && typeof message === 'string') {
         console.log(
@@ -85,6 +85,7 @@ const processEvent = function (event) {
       }
       ITEMS.messages[event.message_id] = event.content
       break
+    }
     case EVENT_TYPES.UserEntered:
       console.log(
         messageFormatting.user(event) +

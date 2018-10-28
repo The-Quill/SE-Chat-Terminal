@@ -6,8 +6,6 @@ const config = require('./config')
 const WebSocket = require('ws')
 const ChatHandler = require('./chat')
 
-let time = new Date()
-
 const wait = time => new Promise(resolve => setTimeout(() => resolve(), time))
 
 const domainVars = {
@@ -15,6 +13,47 @@ const domainVars = {
   jars: {},
   ws: {}
 }
+
+function setCookie(jar, domain) {
+  return res => {
+    const cookie = res.headers['set-cookie']
+    if (!cookie) {
+      global.log({ statusCode: res.statusCode, headers: res.headers })
+      return
+    }
+    let value = request.cookie(cookie[0].replace('.stack', 'stack'))
+    jar.setCookie(value, domain, (err) => err && console.error(err))
+    jar.setCookie(value, domain.replace(/http(s)?:\/\//i, 'http$1://chat.'), (err) => err && console.error(err))
+  }
+}
+
+const openWebSocket = function (url, time, domain) {
+  return new Promise(function (resolve) {
+    if (domainVars.ws[domain]) {
+      // return
+      domainVars.ws[domain].close()
+    }
+    domainVars.ws[domain] = new WebSocket(url + '?l=' + time, null, {
+      headers: {
+        'Origin': `https://chat.${domain}.com`
+      }
+    })
+    domainVars.ws[domain].on('message', function (jsonMessage) {
+      resolve()
+      const message = JSON.parse(jsonMessage)
+      global.log({ message })
+      const keys = Object.keys(message)
+      keys.forEach(function (key) {
+        if (message[key].e) { // eslint-disable-line id-length
+          global.log(message[key].e)
+          message[key].e.forEach(ChatHandler.processEvent) // eslint-disable-line id-length
+        }
+      })
+    })
+    domainVars.ws[domain].on('error', error => global.log({ error: { body: error.body, message: error.message } }))
+  })
+}
+
 const actions = {
   join: async function (domainMultiCase, roomid) {
     const domain = domainMultiCase.toLowerCase()
@@ -51,7 +90,7 @@ const actions = {
   },
   roomlist: function (domain) {
     let domainFixed = ''
-    if (domain != '') {
+    if (domain !== '' && domain !== null) {
       const construct = {
         'mse': 'MetaStackExchange',
         'se': 'StackExchange',
@@ -150,52 +189,12 @@ const actions = {
     })
   }
 }
-const openWebSocket = function (url, time, domain) {
-  return new Promise(function (resolve, reject) {
-    let connected = false
-    let messaged = false
-    if (domainVars.ws[domain]) {
-      // return
-      domainVars.ws[domain].close()
-    }
-    domainVars.ws[domain] = new WebSocket(url + '?l=' + time, null, {
-      headers: {
-        'Origin': `https://chat.${domain}.com`
-      }
-    })
-    domainVars.ws[domain].on('message', function (jsonMessage) {
-      resolve()
-      const message = JSON.parse(jsonMessage)
-      global.log({ message })
-      const keys = Object.keys(message)
-      keys.forEach(function (key) {
-        if (message[key].e) { // eslint-disable-line id-length
-          global.log(message[key].e)
-          message[key].e.forEach(ChatHandler.processEvent) // eslint-disable-line id-length
-        }
-      })
-    })
-    domainVars.ws[domain].on('error', error => global.log({ error: { body: error.body, message: error.message } }))
-  })
-}
 
 function getFkey(res) {
   const dom = cheerio.load(res)
   return dom('input[name=fkey]').attr('value')
 }
 
-function setCookie(jar, domain) {
-  return res => {
-    const cookie = res.headers['set-cookie']
-    if (!cookie) {
-      global.log({ statusCode: res.statusCode, headers: res.headers })
-      return
-    }
-    let value = request.cookie(cookie[0].replace('.stack', 'stack'))
-    jar.setCookie(value, domain, (err) => err && console.error(err))
-    jar.setCookie(value, domain.replace(/http(s)?:\/\//i, 'http$1://chat.'), (err) => err && console.error(err))
-  }
-}
 function logJar(jar, domain) {
   return () => {
     return {
@@ -268,7 +267,7 @@ const connectDomainRooms = async function (domainMultiCase, initialRoom, rooms) 
     fkey: domainVars.fkey[domain],
     roomid: initialRoomId
   } })
-  let secondLevelResponse
+  let secondLevelResponse = null
   try {
     secondLevelResponse = await request.post({
       url: `https://chat.${domain}.com/ws-auth`,
@@ -300,14 +299,16 @@ const connectDomainRooms = async function (domainMultiCase, initialRoom, rooms) 
     resolveWithFullResponse: true,
     jar: domainVars.jars[domain]
   })
+  const ONE_SECOND = 1000
+  const TWO_SECONDS = ONE_SECOND * 2
   addCookie(mainJoinRes)
-  time = Math.floor(Date.now() / 1000)
+  time = Math.floor(Date.now() / ONE_SECOND)
   await openWebSocket(url, time, domain)
-  await wait(2000)
+  await wait(TWO_SECONDS)
 
   for (const room of Object.values(rooms)) {
     const event = await actions.join(domain, room.room_id)
-    ChatHandler.processEvent(Object.assign({ room_name: room.name }, event))
+    ChatHandler.processEvent(Object.assign({ room_name: room.name }, event)) // eslint-disable-line camelcase
     console.log(
       `Connected to ${colors.bold.white(room.name)}:${colors.bold.white(room.room_id)}`
     )
@@ -337,7 +338,7 @@ async function start() {
   for (let domainName of Object.keys(config.room_domains)) {
     const domain = config.room_domains[domainName]
     if (domain.rooms.length === 0) {
-      return new Promise(() => {})
+      return new Promise()
     }
     const domainNameFixed = domainNameFixer(domainName)
     const firstDomain = domain.rooms[Object.keys(domain.rooms)[0]]
