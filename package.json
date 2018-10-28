@@ -14,9 +14,8 @@
     "url": "https://github.com/The-Quill/SE-Chat-Terminal"
   },
   "scripts": {
-    "start": "node ws.js",
-    "predeploy": "echo im about to deploy",
-    "postdeploy": "echo ive deployed"
+    "start": "node start.js",
+    "lint": "eslint **/*.js"
   },
   "bugs": {
     "url": "https://github.com/The-Quill/SE-Chat-Terminal/issues"
