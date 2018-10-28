@@ -20,7 +20,7 @@ function handleError(error) {
 global.handleError = handleError;
 
 global.log = (...args) => {
-  if (process.env.DEBUG.trim() === 'true') {
+  if ((process.env.DEBUG || '').trim() === 'true') {
     console.log(...args)
   }
 }
