@@ -5,6 +5,7 @@ const readline = require('readline');
 const Promise = require('bluebird');
 const REPL = readline.createInterface(process.stdin, process.stdout);
 const core = require('./chat_modules/core');
+const markdown = require('./chat_modules/markdown');
 
 const columnedPrint = function (columnLimit, dataSet, titleString) {
   const rows = [];
@@ -215,7 +216,7 @@ async function handleInput(STDIN) {
     const potentialStringArray = commandArgs.splice(subCommandProperties.length - 1);
     commandArgs[subCommandProperties.length - 1] = potentialStringArray.join(' ');
   }
-  for (const subCommandName in subCommandProperties) {
+  for (const subCommandName of subCommandProperties) {
     const subCommand = properties[commandName][subCommandName];
     await new Promise(function (resolve, reject) {
       if (commandArgs.length > commandArgsIndex) {
@@ -276,6 +277,7 @@ console.warn = (...args) => fixedPrint('warn', args);
 console.info = (...args) => fixedPrint('info', args);
 console.error = (...args) => fixedPrint('error', args);
 const HTMLtoMarkdown = function (string) {
+  return markdown(string)
   // const globals = {
   //     strike: '---',
   //     i: '_',
@@ -297,14 +299,14 @@ const HTMLtoMarkdown = function (string) {
   //     }
   // }
 
-  return string;
+  // return string;
 }
 const messageFormatting = {
   room: function (event) {
     return colors.green('[') +
       colors.bold.white(event.room_id) +
       colors.green(': ') +
-      colors.bold.white(event.room_name) +
+      colors.bold.white(event.room_name || '') +
       colors.green('] ');
   },
   user: event => colors.bold.yellow(event.user_name),
@@ -324,7 +326,7 @@ const messageFormatting = {
       colors.green(']');
   },
   messageId: event => colors.green(event.message_id),
-  connection: event => colors.green('Connecting to ') + colors.bold.white(event.name),
+  connection: event => colors.green('Connecting to ') + colors.bold.green(event.name) + colors.bold.white(':') + colors.bold.green(event.room_id),
 };
 core.setMessageFormatting(messageFormatting);
 module.exports = {
