@@ -1,5 +1,5 @@
 # SE Chat Terminal
----
+
 # What is this?
 
 This is a chat client that runs in the terminal using SE's improptu chat APIs and the raw power of Node.JS.
@@ -13,7 +13,6 @@ It's still in early beta development, but the following commands/features work s
  - Noticing special events as _notable occurences_ (see the `star_threshold` note of the config section)
  - Being able to see deleted and edited messages originals (it's not a self-modifying feed like SE)
 
----
 # How to get started
 
 To get started, build the required plugins by calling:
