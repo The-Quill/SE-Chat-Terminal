@@ -1,6 +1,7 @@
 module.exports = {
   env: {
-    node: true
+    node: true,
+    es6: true
   },
   parserOptions: {
     ecmaVersion: 2017,
@@ -132,7 +133,7 @@ module.exports = {
     'no-new-require': 'error',
     'no-path-concat': 'error',
     'no-process-env': 'warn',
-    'no-process-exit': 'error',
+    // 'no-process-exit': 'error',
     'no-restricted-modules': 'error',
     'no-sync': 'error',
     'array-bracket-spacing': 'error',
@@ -166,7 +167,7 @@ module.exports = {
     'newline-per-chained-call': 'error',
     'no-array-constructor': 'error',
     'no-bitwise': 'error',
-    'no-continue': 'error',
+    // 'no-continue': 'error',
     'no-inline-comments': 'error',
     'no-lonely-if': 'error',
     'no-mixed-spaces-and-tabs': 'error',
