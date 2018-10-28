@@ -1,6 +1,6 @@
 // const center = require('center-align')
 const { parse } = require('node-html-parser')
-const colors = require('colors')
+require('colors')
 const len = require('string-length')
 const ansiSubstr = require('ansi-substring')
 const ansiAlign = require('ansi-align')
@@ -75,7 +75,7 @@ const spreadAcrossLines = (text, count = 0) => {
   let lineCount = Math.floor(len(text) / count)
   let lines = new Array(lineCount)
   let workingIndex = 0
-  for (let i = 0; i < lineCount; i++) {
+  for (let i = 0; i < lineCount; i += 1) {
     const out = trimBySpaces(ansiSubstr(text, workingIndex), count, true)
     lines[i] = out.match
     const { spaces } = out
@@ -116,15 +116,16 @@ const joinLines = setOfLines => {
   const wip = []
   const lengths = []
   setOfLines.forEach((lines, lineIndex) => lines.split('\n').forEach((line, index) => {
+    let modifiedLine = line
     if (wip.length < index + 1) {
       if (lineIndex !== 0) {
-        line = ansiPadStart(line, lengths[index - 1])
+        modifiedLine = ansiPadStart(line, lengths[index - 1])
       }
-      wip.push(line)
-      lengths.push(len(line))
+      wip.push(modifiedLine)
+      lengths.push(len(modifiedLine))
     } else {
-      wip[index] += line
-      lengths[index] += len(line)
+      wip[index] += modifiedLine
+      lengths[index] += len(modifiedLine)
     }
   }))
   return wip.join('\n')
@@ -210,7 +211,7 @@ const quote = {
       .reverse()
       .join('.')
     let place = ''
-    let match = Object.keys(urls).find(url => u.hostname.startsWith(url))
+    let match = Object.keys(urls).find(domain => u.hostname.startsWith(domain))
     if (match !== null) {
       place = urls[match]
     } else if (hostname === 'stackexchange.com') {
@@ -227,6 +228,8 @@ const quote = {
 const postOnebox = {
   test: text => text.startsWith('<div class="onebox ob-post">'),
   replace: text => {
+    const TITLE_LENGTH = 35
+    const BODY_LENGTH = 75
     const root = parse(text)
     let votes = root.querySelector('.ob-post-votes').rawText
     const title = root.querySelector('.ob-post-title').rawText
@@ -237,10 +240,10 @@ const postOnebox = {
     const { href: url } = root.querySelector('.ob-post-title a').attributes
     const [, id] = url.match(/questions\/(\d+)\//)
     const fixedBody = body.replace(/\n/g, ' ')
-    let thinTitle = trimBySpaces(title, 35)
-    thinTitle += len(thinTitle) >= 35 ? '...' : ''
-    let thinBody = trimBySpaces(fixedBody, 75)
-    thinBody = len(thinBody) >= 35 ? spreadAcrossLines(thinBody, 35) : thinBody
+    let thinTitle = trimBySpaces(title, TITLE_LENGTH)
+    thinTitle += len(thinTitle) >= TITLE_LENGTH ? '...' : ''
+    let thinBody = trimBySpaces(fixedBody, BODY_LENGTH)
+    thinBody = len(thinBody) >= TITLE_LENGTH ? spreadAcrossLines(thinBody, TITLE_LENGTH) : thinBody
     return '\n' + box(`
 ${joinLines([box(votes, 'votes'.red, true, true), box(thinBody, 'text'.red, false, true)])}
 ${joinLines([box(tags.map(t => t.bold).join(', '), 'tags'.green, false, true), box(user.underline, 'user'.green, false, true), box(id.toString().underline, 'qID'.green, true, true)])}
