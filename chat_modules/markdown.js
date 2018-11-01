@@ -227,6 +227,14 @@ function test(text, context) {
       wip = type.replace(wip, context)
     }
   }
+  for (const [name, type] of Object.entries(all)) {
+    const isMatch = type.test(wip)
+    if (isMatch && !type.replace) {
+      console.log(`Text matched ${name} type but no replacement function exists`)
+    } else if (isMatch) {
+      wip = type.replace(wip, context)
+    }
+  }
   return wip
 }
 
