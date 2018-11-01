@@ -200,9 +200,9 @@ async function handleInput(STDIN) {
   const input = STDIN.replace('/', '');
   const commandArgs = input.split(' ');
   const commandName = commandArgs.splice(0, 1)[0];
+  if (commandName.length === 0) return
   let commandArgsIndex = 0;
   if (Object.keys(properties).indexOf(commandName) === -1) {
-    console.log(Object.keys(properties).indexOf(commandName))
     console.log(
       colors.bold.red(
         'Command (' + commandName + ') unrecognised. ' +
