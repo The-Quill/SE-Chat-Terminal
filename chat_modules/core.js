@@ -46,7 +46,8 @@ const openWebSocket = function (url, time, domain) {
       keys.forEach(function (key) {
         if (message[key].e) { // eslint-disable-line id-length
           global.log(message[key].e)
-          message[key].e.forEach(ChatHandler.processEvent) // eslint-disable-line id-length
+          message[key].e.map(e => Object.assign(e, { domain }))
+          .forEach(ChatHandler.processEvent) // eslint-disable-line id-length
         }
       })
     })
@@ -100,15 +101,7 @@ const actions = {
     }
     const rooms = []
     if (config.room_domains.hasOwnProperty(domainFixed)) {
-      Object.keys(config.room_domains[domainFixed].rooms).forEach(function (room) {
-        rooms.push(config.room_domains[domainFixed].rooms[room].name)
-      })
-    } else {
-      Object.keys(config.room_domains).forEach(function (domainName) {
-        Object.keys(config.room_domains[domainName].rooms).forEach(function (room) {
-          rooms.push(config.room_domains[domainName].rooms[room].name)
-        })
-      })
+      config.room_domains[domainFixed].rooms.forEach(room => rooms.push(room))
     }
     return rooms
   },
@@ -205,7 +198,6 @@ function logJar(jar, domain) {
 }
 
 const connectDomainRooms = async function (domainMultiCase, initialRoom, rooms) {
-  const initialRoomId = initialRoom.room_id
   const domain = domainMultiCase.toLowerCase()
   domainVars.jars[domain] = request.jar()
   let addCookie = setCookie(domainVars.jars[domain], `https://${domain}.com`)
@@ -238,10 +230,10 @@ const connectDomainRooms = async function (domainMultiCase, initialRoom, rooms) 
   addCookie(login)
   global.log({ headers: login.headers, login: login.statusCode })
 
-  global.log({ domain, url: `https://chat.${domain}.com/rooms/${initialRoomId}`, type: 'chatPage' })
+  global.log({ domain, url: `https://chat.${domain}.com/rooms/${initialRoom}`, type: 'chatPage' })
   const chatPageRes = await request({
     resolveWithFullResponse: true,
-    url: `https://chat.${domain}.com/rooms/${initialRoomId}`,
+    url: `https://chat.${domain}.com/rooms/${initialRoom}`,
     jar: domainVars.jars[domain]
   })
   const chatFkey = getFkey(chatPageRes.body)
@@ -250,7 +242,7 @@ const connectDomainRooms = async function (domainMultiCase, initialRoom, rooms) 
   global.log({ stage: 'chatFkey', chatFkey, statusCode: chatPageRes.statusCode })
   // const eventsRes = await request.post({
   //   resolveWithFullResponse: true,
-  //   url: `https://chat.${domain}.com/chats/${initialRoomId}/events`,
+  //   url: `https://chat.${domain}.com/chats/${initialRoom}/events`,
   //   jar: domainVars.jars[domain],
   //   form: {
   //     since: 0,
@@ -265,7 +257,7 @@ const connectDomainRooms = async function (domainMultiCase, initialRoom, rooms) 
 
   global.log({ domain, url: `https://chat.${domain}.com/ws-auth`, type: 'ws-auth', form: {
     fkey: domainVars.fkey[domain],
-    roomid: initialRoomId
+    roomid: initialRoom
   } })
   let secondLevelResponse = null
   try {
@@ -273,7 +265,7 @@ const connectDomainRooms = async function (domainMultiCase, initialRoom, rooms) 
       url: `https://chat.${domain}.com/ws-auth`,
       form: {
         fkey: domainVars.fkey[domain],
-        roomid: initialRoomId
+        roomid: initialRoom
       },
       resolveWithFullResponse: true,
       jar: domainVars.jars[domain]
@@ -294,7 +286,7 @@ const connectDomainRooms = async function (domainMultiCase, initialRoom, rooms) 
     url: `https://chat.${domain}.com/ws-auth`,
     form: {
       fkey: domainVars.fkey[domain],
-      roomid: initialRoomId
+      roomid: initialRoom
     },
     resolveWithFullResponse: true,
     jar: domainVars.jars[domain]
@@ -307,10 +299,10 @@ const connectDomainRooms = async function (domainMultiCase, initialRoom, rooms) 
   await wait(TWO_SECONDS)
 
   for (const room of Object.values(rooms)) {
-    const event = await actions.join(domain, room.room_id)
-    ChatHandler.processEvent(Object.assign({ room_name: room.name }, event)) // eslint-disable-line camelcase
+    const event = await actions.join(domain, room)
+    ChatHandler.processEvent(Object.assign({ room_name: '' }, event)) // eslint-disable-line camelcase
     console.log(
-      `Connected to ${colors.bold.white(room.name)}:${colors.bold.white(room.room_id)}`
+      `Connected to ${colors.bold.white(room)}`
     )
   }
   console.log(`Connected to all rooms on ${domain} domain successfully`)
@@ -341,7 +333,7 @@ async function start() {
       return new Promise()
     }
     const domainNameFixed = domainNameFixer(domainName)
-    const firstDomain = domain.rooms[Object.keys(domain.rooms)[0]]
+    const firstDomain = domain.rooms[0]
     try {
       await connectDomainRooms(domainNameFixed, firstDomain, domain.rooms)
     } catch (error) {
