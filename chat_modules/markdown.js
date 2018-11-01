@@ -201,9 +201,44 @@ const oneboxImage = {
   }
 }
 
+const oneboxTweet = {
+  test: text => text.startsWith('<div class="onebox ob-tweet">'),
+  replace: text => {
+    const root = parse(text)
+    const links = root.querySelectorAll('a')
+    const last = links[links.length - 1]
+    const { href: tweetLink } = last.rawAttributes
+    let date = last.rawText
+    const abbreviations = {
+      Janary: 'Jan',
+      Febuary: 'Deb',
+      March: 'March',
+      April: 'Apr',
+      May: 'May',
+      June: 'Jun',
+      July: 'Jul',
+      August: 'Aug',
+      September: 'Sep',
+      October: 'Oct',
+      November: 'Nov',
+      December: 'Dec',
+    }
+    Object.entries(abbreviations).forEach(([abbr, rep]) => date = date.replace(abbr, rep))
+    const { href: authorLink } = links[0].rawAttributes
+    let tweet = root.querySelector('.ob-status-text').rawText
+    const author = authorLink.replace(/https?:\/\/twitter.com\//, '')
+    tweet = tweet.replace(/#(\w*[0-9a-zA-Z]+\w*[0-9a-zA-Z])/, (...args) => {
+      const content = args[1]
+      return terminalLink(`#${content}`, `https://twitter.com/hashtag/${content}`)
+    })
+    return '\n' + Ansi.box(Ansi.spreadAcrossLines(tweet, 50), terminalLink(`${'Tweet by'.green} @${author.blue} - ${date.green}`, tweetLink), false, true)
+  }
+}
+
 const all = {
   postOnebox,
   oneboxMessage,
+  oneboxTweet,
   oneboxImage,
   quote,
   bold,
