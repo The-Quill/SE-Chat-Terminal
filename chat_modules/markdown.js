@@ -173,6 +173,11 @@ const tagHTML = {
   replace: text => matchReplace(/<a href="([^"]+)"><span class="ob-post-tag" style="[^"]+">([^<]+)<\/span><\/a>/g, text, (link, title) => `[${terminalLink(title, link.replace(/^\/\//, 'https://')).white}]`, true)
 }
 
+const arrow = {
+  test: text => text.includes('&rarr;'),
+  replace: text => text.replace(/&rarr;/g, '→')
+}
+
 let a = '\u001b]8;;https://chat.meta.stackexchange.com/transcript/message/7335865#7335865\u00076 mins ago, by Jon Ericson\u001b]8;;\u0007'
 
 const oneboxMessage = {
@@ -209,6 +214,7 @@ const all = {
   codeHTML,
   linkHTML,
   tagHTML,
+  arrow,
 }
 
 function test(text, context) {
