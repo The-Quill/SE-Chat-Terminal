@@ -187,7 +187,7 @@ const processEvent = function (event) {
     case EVENT_TYPES.MessageMovedOut:
       console.log(
         messageFormatting.user(event) +
-        messageFormatting.activity(' moved your message into ') +
+        messageFormatting.activity(' moved a message out ') +
         messageFormatting.room(event) +
         messageFormatting.activity('!')
       )
@@ -195,7 +195,7 @@ const processEvent = function (event) {
     case EVENT_TYPES.MessageMovedIn:
       console.log(
         messageFormatting.user(event) +
-        messageFormatting.activity(' moved your message into ') +
+        messageFormatting.activity(' moved a message into ') +
         messageFormatting.room(event) +
         messageFormatting.activity('!')
       )
