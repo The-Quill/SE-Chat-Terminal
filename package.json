@@ -29,8 +29,6 @@
   ],
   "dependencies": {
     "ansi-substring": "^1.0.3",
-    "bluebird": "^3.3.5",
-    "cheerio": "^0.22.0",
     "colors": "^1.1.2",
     "html-entities": "^1.2.1",
     "node-html-parser": "^1.1.10",

@@ -1,5 +1,5 @@
 'use strict'
-const cheerio = require('cheerio')
+const { parse } = require('node-html-parser')
 const colors = require('colors')
 const request = require('request-promise-native')
 const config = require('./config')
@@ -184,8 +184,8 @@ const actions = {
 }
 
 function getFkey(res) {
-  const dom = cheerio.load(res)
-  return dom('input[name=fkey]').attr('value')
+  const dom = parse(res)
+  return dom.querySelectorAll('input').find(i => i.rawAttributes.name === 'fkey').rawAttributes.value
 }
 
 function logJar(jar, domain) {
