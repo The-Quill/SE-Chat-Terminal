@@ -1,7 +1,9 @@
 'use strict';
 const path = require('path');
 const core = require('./chat_modules/core');
+const config = require('./chat_modules/config');
 const prompt = require('./prompt');
+const fs = require('fs')
 
 let time = new Date()
 
@@ -20,7 +22,7 @@ function handleError(error) {
 global.handleError = handleError;
 
 global.log = (...args) => {
-  if ((process.env.DEBUG || '').trim() === 'true') {
+  if (config.debug) {
     console.log(...args)
   }
 }

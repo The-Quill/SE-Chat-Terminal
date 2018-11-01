@@ -28,20 +28,17 @@
     "magic"
   ],
   "dependencies": {
-    "ansi-align": "^2.0.0",
     "ansi-substring": "^1.0.3",
     "bluebird": "^3.3.5",
-    "boxen": "^2.0.0",
-    "center-align": "^1.0.1",
     "cheerio": "^0.22.0",
     "colors": "^1.1.2",
+    "html-entities": "^1.2.1",
     "node-html-parser": "^1.1.10",
-    "prompt": "^1.0.0",
     "request": "^2.72.0",
     "request-promise-native": "^1.0.5",
     "string-length": "^2.0.0",
     "terminal-link": "^1.1.0",
-    "util": "^0.11.0",
+    "util": "^0.11.1",
     "ws": "^6.1.0"
   },
   "devDependencies": {
