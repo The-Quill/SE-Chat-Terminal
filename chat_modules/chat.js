@@ -49,7 +49,7 @@ const convert = function (str) {
 
 /* eslint-disable complexity, max-statements */
 const processEvent = function (event) {
-  if (event.content && event.content === ITEMS.lastEventContent) {
+  if (event.content && JSON.stringify(event.content) === JSON.stringify(ITEMS.lastEventContent)) {
     return false
   }
   ITEMS.lastEventContent = event.content
