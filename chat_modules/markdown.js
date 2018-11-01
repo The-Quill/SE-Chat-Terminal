@@ -1,143 +1,19 @@
 // const center = require('center-align')
 const { parse } = require('node-html-parser')
 require('colors')
-const len = require('string-length')
-const ansiSubstr = require('ansi-substring')
-const ansiAlign = require('ansi-align')
 const terminalLink = require('terminal-link')
-
-const ansiPadEnd = (string, length, delimiter = ' ') => {
-  if (len(string) > length) {
-    return string
-  }
-  let rest = length - len(string)
-  return `${string}${delimiter.repeat(rest)}`
-}
-const ansiPadStart = (string, length, delimiter = ' ') => {
-  if (len(string) > length) {
-    return string
-  }
-  let rest = length - len(string)
-  return `${delimiter.repeat(rest)}${string}`
-}
-
-const center = (text, length) => {
-  const all = [...text, ' '.repeat(length)]
-  const highest = Math.max(...all.map(i => len(i)))
-  const res = ansiAlign.center(all)
-  res.pop()
-  let lines = []
-  for (let line of res) {
-    if (!line.includes(' ')) {
-      lines.push(line)
-      continue
-    }
-    const startMatch = line.match(/^\s+/)
-    const endMatch = line.match(/\s+$/)
-    if (!startMatch || endMatch) {
-      if (startMatch && endMatch) {
-        if (len(endMatch[0]) > len(startMatch[0])) {
-          line = line.slice(len(line) - (endMatch[0] - startMatch[0]))
-        }
-      }
-      lines.push(line)
-      continue
-    }
-    const [spacesStart] = startMatch
-    let amount = highest - len(line)
-    lines.push(`${line}${' '.repeat(amount > len(spacesStart) ? len(spacesStart) : amount)}`)
-  }
-  return lines
-}
-
-const brackets = {
-  tl: '┌',
-  tr: '┐',
-  bl: '└',
-  br: '┘',
-  vertical: '│',
-  horizontal: '─'
-}
-
-const trimBySpaces = (text, index, getIndex = false) => {
-  const spaces = text
-    .split('')
-    .reduce((accumulator, current, i) => current === ' ' ? accumulator.concat(i) : accumulator, [])
-    .filter(i => i >= index)
-  const match = spaces.length === 0 ? text : text.slice(0, spaces[0])
-  if (getIndex) {
-    return { match, spaces }
-  }
-  return match
-}
-
-const spreadAcrossLines = (text, count = 0) => {
-  let lineCount = Math.floor(len(text) / count)
-  let lines = new Array(lineCount)
-  let workingIndex = 0
-  for (let i = 0; i < lineCount; i += 1) {
-    const out = trimBySpaces(ansiSubstr(text, workingIndex), count, true)
-    lines[i] = out.match
-    const { spaces } = out
-    if (spaces.length === 0) break
-    workingIndex = spaces[0]
-  }
-  return lines.join('\n')
-}
-
-const box = (lines = '', title = '', noSpace = false, centered = false) => {
-  const padding = noSpace ? 0 : 2
-  let length = Math.max(...lines.split('\n').concat(title)
-    .map(line => len(line)))
-  let print = text => ansiPadEnd(text, length + padding)
-  let titleNeedsPadding = len(title) === length
-  let extra = titleNeedsPadding ? brackets.horizontal.repeat(padding) : ''
-  const titleLength = titleNeedsPadding ? length : length + padding * 2
-  length += padding * 2
-  if (centered) {
-    if (padding === 0) {
-      return box(center(lines.split('\n'), length + padding).join('\n'), `${extra}${title}${extra}`, true, false)
-    }
-    return box(
-      center(lines.split('\n'), length + padding)
-        .join('\n'),
-      `${extra}${title}${extra}`,
-      true,
-      false
-    )
-  }
-  return `${brackets.tl}${extra}${ansiPadEnd(title.toString(), titleLength + padding, brackets.horizontal)}${extra}${brackets.tr}
-${lines.split('\n').map(line => `${brackets.vertical}${print(line)}${brackets.vertical}`)
-    .join('\n')}
-${brackets.bl}${brackets.horizontal.repeat(length + padding)}${brackets.br}`
-}
-
-const joinLines = setOfLines => {
-  const wip = []
-  const lengths = []
-  setOfLines.forEach((lines, lineIndex) => lines.split('\n').forEach((line, index) => {
-    let modifiedLine = line
-    if (wip.length < index + 1) {
-      if (lineIndex !== 0) {
-        modifiedLine = ansiPadStart(line, lengths[index - 1])
-      }
-      wip.push(modifiedLine)
-      lengths.push(len(modifiedLine))
-    } else {
-      wip[index] += modifiedLine
-      lengths[index] += len(modifiedLine)
-    }
-  }))
-  return wip.join('\n')
-}
+const { AllHtmlEntities: Entities } = require('html-entities')
+const Ansi = require('./ansi')
+ 
+const entities = new Entities();
 
 const quote = {
   test: text => text.startsWith('<div class="quote">') && (/#comment\d+_\d+/).test(text),
   replace: text => {
     const root = parse(text)
-    const comment = root.querySelector('.quote').childNodes[0].rawText.replace(/\n/g, ' ').replace('&mdash;', '-')
+    const comment = entities.decode(root.querySelector('.quote').childNodes.filter(node => !node.rawAttributes || !node.rawAttributes.hasOwnProperty('rel')).map(node => node.rawText).join('').replace(/\n/g, ' ').replace('&mdash;', ''))
     const author = root.querySelector('a').childNodes[0].rawText
-    const { href: url } = root.querySelectorAll('a')[1].rawAttributes
+    const { href: url } = root.querySelectorAll('a').filter(a => a.rawAttributes.hasOwnProperty('rel'))[1].rawAttributes
     let u = new URL(url)
     const urls = {
       'meta.stackexchange.com': 'Meta Stack Exchange',
@@ -221,7 +97,8 @@ const quote = {
       place = urls[hostname]
     }
     const [, questionName] = text.match(/questions\/\d+\/([^#]+)/)
-    return '\n' + box(`${comment.trim().white} ${author.trim().red}`, `Comment from ${place} - ${questionName}`.blue, false, true)
+    const spreadComment = Ansi.spreadAcrossLines(comment.trim(), 60)
+    return '\n' + Ansi.box(spreadComment, terminalLink(`Comment from ${place}`.blue, url), false, true)
   }
 }
 
@@ -237,17 +114,18 @@ const postOnebox = {
     const body = root.querySelector('.ob-post-body').text
     const tags = root.querySelectorAll('.ob-post-tags .ob-post-tag').map(tag => tag.rawText)
     const { title: site } = root.querySelector('.ob-post-siteicon').rawAttributes
-    const { href: url } = root.querySelector('.ob-post-title a').attributes
+    let { href: url } = root.querySelector('.ob-post-title a').attributes
+    url = url.replace(/^\/\//, 'https://')
     const [, id] = url.match(/questions\/(\d+)\//)
     const fixedBody = body.replace(/\n/g, ' ')
-    let thinTitle = trimBySpaces(title, TITLE_LENGTH)
-    thinTitle += len(thinTitle) >= TITLE_LENGTH ? '...' : ''
-    let thinBody = trimBySpaces(fixedBody, BODY_LENGTH)
-    thinBody = len(thinBody) >= TITLE_LENGTH ? spreadAcrossLines(thinBody, TITLE_LENGTH) : thinBody
-    return '\n' + box(`
-${joinLines([box(votes, 'votes'.red, true, true), box(thinBody, 'text'.red, false, true)])}
-${joinLines([box(tags.map(t => t.bold).join(', '), 'tags'.green, false, true), box(user.underline, 'user'.green, false, true), box(id.toString().underline, 'qID'.green, true, true)])}
-`, `${site.bold} - ${thinTitle.blue}`, false, true)
+    let thinTitle = Ansi.trimBySpaces(title, TITLE_LENGTH)
+    thinTitle += Ansi.len(thinTitle) >= TITLE_LENGTH ? '...' : ''
+    let thinBody = Ansi.trimBySpaces(fixedBody, BODY_LENGTH)
+    thinBody = Ansi.len(thinBody) >= TITLE_LENGTH ? Ansi.spreadAcrossLines(thinBody, TITLE_LENGTH) : thinBody
+    return '\n' + Ansi.box(`
+${Ansi.joinLines([Ansi.box(votes, 'votes'.red, true, true), Ansi.box(thinBody, 'text'.red, false, true)])}
+${Ansi.joinLines([Ansi.box(tags.map(t => t.bold).join(', '), 'tags'.green, false, true), Ansi.box(user.underline, 'user'.green, false, true), Ansi.box(terminalLink(id.toString().underline, url), 'qID'.green, true, true)])}
+`, `${entities.decode(site).bold} - ${entities.decode(thinTitle).blue}`, false, true)
   }
 }
 
@@ -290,8 +168,38 @@ const linkHTML = {
   replace: text => matchReplace(/<a href="([^"]+)"(?: rel="nofollow noopener noreferrer")?>([^<>]+)<\/a>/g, text, (link, title) => terminalLink(title, link.replace(/^\/\//, 'https://')), true)
 }
 
+const tagHTML = {
+  test: text => (/<a href="([^"]+)"><span class="ob-post-tag"/).test(text),
+  replace: text => matchReplace(/<a href="([^"]+)"><span class="ob-post-tag" style="[^"]+">([^<]+)<\/span><\/a>/g, text, (link, title) => `[${terminalLink(title, link.replace(/^\/\//, 'https://')).white}]`, true)
+}
+
+let a = '\u001b]8;;https://chat.meta.stackexchange.com/transcript/message/7335865#7335865\u00076 mins ago, by Jon Ericson\u001b]8;;\u0007'
+
+const oneboxMessage = {
+  test: text => (/<div class="onebox ob-message"><a rel="noopener noreferrer" class="roomname"/g).test(text),
+  replace: (text, context) => {
+    const root = parse(text)
+    const { href } = root.querySelector('a').rawAttributes
+    const age = root.querySelector('a').rawText
+    const author = root.querySelector('.user-name').rawText
+    const body = root.querySelector('div.quote').rawText
+    return '\n' + Ansi.box(` | ${body}`, terminalLink(`${age}, by ${author}`.blue, `https://chat.${context.domain}.com${href}`), false, false)
+  }
+}
+
+const oneboxImage = {
+  test: text => (/^<div class="onebox ob-image">/).test(text),
+  replace: text => {
+    const root = parse(text)
+    const { href } = root.querySelector('a').rawAttributes
+    return '\n' + Ansi.box(terminalLink(href.green, href), 'Image'.blue, true, false)
+  }
+}
+
 const all = {
   postOnebox,
+  oneboxMessage,
+  oneboxImage,
   quote,
   bold,
   boldHTML,
@@ -299,24 +207,25 @@ const all = {
   italicHTML,
   italicAsterisk,
   codeHTML,
-  linkHTML
+  linkHTML,
+  tagHTML,
 }
 
-function test(text) {
+function test(text, context) {
   let wip = text
   for (const [name, type] of Object.entries(all)) {
     const isMatch = type.test(wip)
     if (isMatch && !type.replace) {
       console.log(`Text matched ${name} type but no replacement function exists`)
     } else if (isMatch) {
-      wip = type.replace(wip)
+      wip = type.replace(wip, context)
     }
   }
   return wip
 }
 
-function fix(text) {
-  const replacement = test(text)
+function fix(text, context) {
+  const replacement = test(text, context)
   // if (replacement === null) {
   //   // console.log('no parser found for text')
   //   return text

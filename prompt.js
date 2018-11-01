@@ -2,6 +2,7 @@
 const colors = require('colors');
 const cheerio = require('cheerio');
 const readline = require('readline');
+const util = require('util')
 const Promise = require('bluebird');
 const REPL = readline.createInterface(process.stdin, process.stdout);
 const core = require('./chat_modules/core');
@@ -265,7 +266,7 @@ function start() {
 // From here: http://stackoverflow.com/a/24519813/3296811
 const fixedPrint = function (type, args) {
   const indent = Math.ceil((REPL.line.length + 3) / process.stdout.columns);
-  const text = require('util').format.apply(console, args);
+  const text = util.format.apply(console, args);
   REPL.output.write('\n\x1B[' + indent + 'A\x1B[0J'); // No idea at all....
   REPL.output.write(text + '\n');
   REPL.output.write(Array(indent).join('\n\x1B[E'));

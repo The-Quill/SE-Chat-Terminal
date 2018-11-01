@@ -28,7 +28,7 @@ process.argv.forEach(function (value) {
 })
 
 
-config.debug = loadedConfig.debug || true
+config.debug = loadedConfig.debug || false
 config.star_threshold = loadedConfig.star_threshold || 5
 config.default_se_to_login_into = loadedConfig.default_se_to_login_into
 config.user.email = process.env.EMAIL || processValues.email
