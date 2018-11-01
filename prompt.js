@@ -1,16 +1,14 @@
 'use strict';
 const colors = require('colors');
-const cheerio = require('cheerio');
 const readline = require('readline');
 const util = require('util')
-const Promise = require('bluebird');
 const REPL = readline.createInterface(process.stdin, process.stdout);
 const core = require('./chat_modules/core');
 const markdown = require('./chat_modules/markdown');
 
 const columnedPrint = function (columnLimit, dataSet, titleString) {
   const rows = [];
-  const currentRow = [];
+  let currentRow = [];
   dataSet.map(function (dataItem) {
     if (currentRow.length !== columnLimit) {
       currentRow.push(dataItem);
@@ -129,10 +127,11 @@ const properties = {
     }
   },
   clear: {},
+  exit: {},
   help: {}
 };
-properties.leave = properties.join;
-properties.delete = properties.star;
+properties.leave = Object.assign({}, properties.join);
+properties.delete = Object.assign({}, properties.star);
 
 const formattedCommandInstructions = [
   '/help'.bold.white + ' to get a list of commands'.yellow,
@@ -144,7 +143,8 @@ const formattedCommandInstructions = [
   '/edit'.bold.white + ' to edit a message'.yellow,
   '/pingable'.bold.white + ' to see who you can ping'.yellow,
   '/roomlist'.bold.white + ' to see the roomlist'.yellow,
-  '/clear'.bold.white + ' to clear the chat window'.yellow
+  '/clear'.bold.white + ' to clear the chat window'.yellow,
+  '/exit'.bold.white + ' to exit'.yellow
 ];
 const commands = {
   help: () => formattedCommandInstructions.forEach(commandInstruction => console.log(commandInstruction)),
@@ -175,6 +175,10 @@ const commands = {
   roomlist: async function (chatDomain) {
     const rooms = core.actions.roomlist(chatDomain);
     columnedPrint(3, rooms, 'The available rooms are: ');
+  },
+  exit: function() {
+    console.log('Exiting...')
+    process.exit(1)
   },
   clear: async function () {
     const lines = process.stdout.getWindowSize()[1];
@@ -277,31 +281,6 @@ console.log = (...args) => fixedPrint('log', args);
 console.warn = (...args) => fixedPrint('warn', args);
 console.info = (...args) => fixedPrint('info', args);
 console.error = (...args) => fixedPrint('error', args);
-const HTMLtoMarkdown = function (string) {
-  return markdown(string)
-  // const globals = {
-  //     strike: '---',
-  //     i: '_',
-  //     b: '**'
-  // };
-  // // Object.keys(globals).forEach(function(global){
-  // //     const element =
-  // //     dom(global).parent.html(dom(global).parent.html().replace('<' + global + '>'));
-  // // });
-  // if (string.indexOf('<') !== -1){
-  //     const dom = cheerio.load(string);
-  //     const post = dom('.ob-post-title a');
-  //     if (post != null){
-  //         return '[' + post.text() + '](' + post.attr('href') + ')';
-  //     }
-  //     post = dom('.ob-image a');
-  //     if (post != null){
-  //         return '![' + post.attr('alt') + '](' + post.attr('href') + ')';
-  //     }
-  // }
-
-  // return string;
-}
 const messageFormatting = {
   room: function (event) {
     return colors.green('[') +
@@ -312,7 +291,7 @@ const messageFormatting = {
   },
   user: event => colors.bold.yellow(event.user_name),
   activity: string => colors.blue(string),
-  content: event => colors.green(HTMLtoMarkdown(event.content)),
+  content: event => colors.green(markdown(event.content)),
   edited: function (event) {
     const maxStringLength = 25;
     const editedStringLength = Math.ceil(maxStringLength / 2);
