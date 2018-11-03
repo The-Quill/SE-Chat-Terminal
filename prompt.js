@@ -175,7 +175,7 @@ const commands = {
   },
   roomlist: async function (chatDomain) {
     const rooms = Object.values(core.getRooms(chatDomain))
-    .map(room => room.name.underline)
+    .map(room => room.name)
     .filter(room => !(/^https?:\/\//).test(room) && !room.startsWith('Discussion between') && !room.startsWith('Discussion on'))
     columnedPrint(4, rooms, 'The available rooms are: '.bold);
   },
