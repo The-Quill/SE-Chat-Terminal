@@ -343,7 +343,7 @@ const connectDomainRooms = async function (domainMultiCase, initialRoom, rooms) 
     const event = await actions.join(domain, room)
     ChatHandler.processEvent(Object.assign({ domain, room_name: '' }, event)) // eslint-disable-line camelcase
     console.log(
-      `Connected to ${colors.bold.white(room)}:${colors.bold.white((getRoom(domain, room) || { name: '' }).name)}`
+      `Connected to ${ChatHandler.getMessageFormatting().room({ domain, room_id: room })}`
     )
   }
   console.log(`Connected to all rooms on ${domain.underline} domain successfully`.bold)
