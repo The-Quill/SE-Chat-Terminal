@@ -6,7 +6,7 @@ const ITEMS = {
   flags: {},
   lastEvent: {}
 }
-const noFormattingLinked = function () {
+const noFormattingLinked = function (event) {
   throw new Error('There is no formatting linked.')
 }
 let messageFormatting = {
