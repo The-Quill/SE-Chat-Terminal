@@ -5,6 +5,7 @@ const util = require('util')
 const REPL = readline.createInterface(process.stdin, process.stdout);
 const core = require('./chat_modules/core');
 const markdown = require('./chat_modules/markdown');
+const terminalLink = require('terminal-link');
 
 const columnedPrint = function (columnLimit, dataSet, titleString) {
   const rows = [];
@@ -209,7 +210,7 @@ async function handleInput(STDIN) {
   if (Object.keys(properties).indexOf(commandName) === -1) {
     console.log(
       colors.bold.red(
-        'Command (' + commandName + ') unrecognised. ' +
+        `Command (${commandName}) unrecognised. ` +
         'If this command shows up in /help, ' +
         'please leave an issue on the GitHub repo'
       )
@@ -233,7 +234,7 @@ async function handleInput(STDIN) {
           storedValues[subCommandName] = commandArgs[commandArgsIndex];
           resolve(commandArgs[commandArgsIndex])
         } else {
-          console.log(subCommand.message || 'Wrong answer, punk. Try again.');
+          console.log(subCommand.message || 'answer doesn\'t fit format'.red.bold);
           reject(commandArgs[commandArgsIndex])
         }
         commandArgsIndex++;
@@ -247,7 +248,7 @@ async function handleInput(STDIN) {
             storedValues[subCommandName] = response;
             resolve(response);
           } else {
-            console.log(subCommand.message || 'Wrong answer, punk. Try again.');
+            console.log(subCommand.message || 'answer doesn\'t fit format'.red.bold);
             reject(response);
           }
         });
@@ -277,17 +278,29 @@ const fixedPrint = function (type, args) {
   REPL._refreshLine();
 };
 
+const domainToColor = {
+  ['meta.stackexchange']: 'MSE'.white.underline,
+  ['stackexchange']: 'SE'.blue.underline,
+  ['stackoverflow']: 'SO'.red.underline,
+  ['askubuntu']: 'AU'.yellow.underline,
+}
+
 console.log = (...args) => fixedPrint('log', args);
 console.warn = (...args) => fixedPrint('warn', args);
 console.info = (...args) => fixedPrint('info', args);
 console.error = (...args) => fixedPrint('error', args);
 const messageFormatting = {
   room: function (event) {
-    return colors.green('[') +
+    const content = colors.green('[') +
+      domainToColor[event.domain] +
+      colors.green(' - ') +
       colors.bold.white(event.room_id) +
-      colors.green(': ') +
+      colors.green(' - ') +
       colors.bold.white((core.getRoom(event.domain, event.room_id) || { name: '' }).name) +
-      colors.green('] ');
+    colors.green(']');
+    return event.message_id
+      ? terminalLink(content, `https://chat.${event.domain}.com/transcript/message/${event.message_id}#${event.message_id}`) + ' '
+      : terminalLink(content, `https://chat.${event.domain}.com/rooms/${event.room_id}`) + ' '
   },
   user: event => colors.bold.yellow(event.user_name),
   activity: string => colors.blue(string),
