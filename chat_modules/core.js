@@ -353,6 +353,12 @@ function getRoom(domain, roomId) {
     ? domainVars.rooms[domain][roomId]
     : null
 }
+function getRooms(abbreviation) {
+  const domain = chatAbbreviationToFull(abbreviation)
+  return domainVars.rooms[domain]
+    ? domainVars.rooms[domain]
+    : null
+}
 function chatAbbreviationToFull(domainAbbreviation) {
   if (typeof domainAbbreviation !== 'string') throw new Error('Abbreviation must be a string')
   return {
@@ -395,5 +401,6 @@ module.exports = {
   chatAbbreviationToFull,
   start,
   getRoom,
+  getRooms,
   setMessageFormatting: ChatHandler.setMessageFormatting
 }

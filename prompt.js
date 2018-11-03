@@ -174,8 +174,10 @@ const commands = {
     return core.actions.leave(chatDomain, roomId);
   },
   roomlist: async function (chatDomain) {
-    const rooms = core.actions.roomlist(chatDomain);
-    columnedPrint(3, rooms, 'The available rooms are: ');
+    const rooms = Object.values(core.getRooms(chatDomain))
+    .map(room => room.name.underline)
+    .filter(room => !(/^https?:\/\//).test(room) && !room.startsWith('Discussion between') && !room.startsWith('Discussion on'))
+    columnedPrint(4, rooms, 'The available rooms are: '.bold);
   },
   exit: function() {
     console.log('Exiting...')
