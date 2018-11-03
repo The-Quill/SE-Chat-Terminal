@@ -354,7 +354,7 @@ function getRoom(domain, roomId) {
     : null
 }
 function chatAbbreviationToFull(domainAbbreviation) {
-  if (typeof domainAbbreviation !== 'string') throw new Error('Abbeviation must be a string')
+  if (typeof domainAbbreviation !== 'string') throw new Error('Abbreviation must be a string')
   return {
     mse: 'meta.stackexchange',
     so: 'stackoverflow',
