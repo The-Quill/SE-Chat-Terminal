@@ -11,8 +11,12 @@ const wait = time => new Promise(resolve => setTimeout(() => resolve(), time))
 const domainVars = {
   fkey: {},
   jars: {},
+  rooms: {},
+  doneWithRooms: {},
   ws: {}
 }
+
+const pause = time => new Promise(resolve => setTimeout(() => resolve(), time))
 
 function setCookie(jar, domain) {
   return res => {
@@ -53,6 +57,40 @@ const openWebSocket = function (url, time, domain) {
     })
     domainVars.ws[domain].on('error', error => global.log({ error: { body: error.body, message: error.message } }))
   })
+}
+
+async function loadRooms(domain, page = 1) {
+  if (!domainVars.doneWithRooms.hasOwnProperty(domain)) {
+    domainVars.doneWithRooms[domain] = false
+  }
+  if (domainVars.doneWithRooms[domain]) return
+  const res = await request(`https://chat.${domain}.com/?tab=all&sort=active&page=${page}`)
+  const root = parse(res)
+  const rooms = root.querySelectorAll('.roomcard').map(room => ({
+    id: +room.querySelector('.room-name a').rawAttributes.href.replace(/\/rooms\/(\d+)\/(?:.+)?/, '$1'),
+    name: room.querySelector('span.room-name').attributes.title,
+    users: +room.querySelector('.room-users').rawAttributes.title.replace(/ users? present/, '')
+  }))
+  if (!domainVars.rooms.hasOwnProperty(domain)) {
+    domainVars.rooms[domain] = {}
+  }
+  const newRooms = rooms
+  .filter(room => !domainVars.rooms[domain].hasOwnProperty(room.id))
+
+  domainVars.doneWithRooms[domain] = newRooms.length === 0
+  newRooms
+  .forEach(room => domainVars.rooms[domain][room.id] = room)
+  return newRooms
+}
+
+async function loadAllRooms(domain) {
+  let time = new Date()
+  const promises = []
+  for (let i = 0; i < 50; i++) {
+    promises.push(loadRooms(domain, i))
+  }
+  await Promise.all(promises)
+  global.log(`Took ${new Date().getTime() - time.getTime()} ms to get all rooms from ${domain}`)
 }
 
 const actions = {
@@ -199,6 +237,8 @@ function logJar(jar, domain) {
 
 const connectDomainRooms = async function (domainMultiCase, initialRoom, rooms) {
   const domain = domainMultiCase.toLowerCase()
+  await loadAllRooms(domain)
+  await pause(750)
   domainVars.jars[domain] = request.jar()
   let addCookie = setCookie(domainVars.jars[domain], `https://${domain}.com`)
   let getCookies = logJar(domainVars.jars[domain], `https://${domain}.com`)
@@ -274,6 +314,7 @@ const connectDomainRooms = async function (domainMultiCase, initialRoom, rooms) 
   } catch (err) {
     global.log({ jar: getCookies(), opts: err.options })
     console.error(err)
+    process.exit(1)
   }
   if (!secondLevelResponse || secondLevelResponse.body.indexOf('<!DOCTYPE HTML PUBLIC') !== -1) {
     throw new Error('There was an issue with the response. Check your config is correct.')
@@ -300,12 +341,17 @@ const connectDomainRooms = async function (domainMultiCase, initialRoom, rooms) 
 
   for (const room of Object.values(rooms)) {
     const event = await actions.join(domain, room)
-    ChatHandler.processEvent(Object.assign({ room_name: '' }, event)) // eslint-disable-line camelcase
+    ChatHandler.processEvent(Object.assign({ domain, room_name: '' }, event)) // eslint-disable-line camelcase
     console.log(
-      `Connected to ${colors.bold.white(room)}`
+      `Connected to ${colors.bold.white(room)}:${colors.bold.white((getRoom(domain, room) || { name: '' }).name)}`
     )
   }
-  console.log(`Connected to all rooms on ${domain} domain successfully`)
+  console.log(`Connected to all rooms on ${domain.underline} domain successfully`.bold)
+}
+function getRoom(domain, roomId) {
+  return domainVars.rooms[domain] && domainVars.rooms[domain].hasOwnProperty(roomId)
+    ? domainVars.rooms[domain][roomId]
+    : null
 }
 function chatAbbreviationToFull(domainAbbreviation) {
   if (typeof domainAbbreviation !== 'string') throw new Error('Abbeviation must be a string')
@@ -348,5 +394,6 @@ module.exports = {
   actions,
   chatAbbreviationToFull,
   start,
+  getRoom,
   setMessageFormatting: ChatHandler.setMessageFormatting
 }

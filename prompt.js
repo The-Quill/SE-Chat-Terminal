@@ -286,7 +286,7 @@ const messageFormatting = {
     return colors.green('[') +
       colors.bold.white(event.room_id) +
       colors.green(': ') +
-      colors.bold.white(event.room_name || '') +
+      colors.bold.white((core.getRoom(event.domain, event.room_id) || { name: '' }).name) +
       colors.green('] ');
   },
   user: event => colors.bold.yellow(event.user_name),
