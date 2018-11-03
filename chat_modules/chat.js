@@ -18,6 +18,9 @@ let messageFormatting = {
   messageId: noFormattingLinked,
   connection: noFormattingLinked
 }
+const getMessageFormatting = function() {
+  return messageFormatting
+}
 const setMessageFormatting = function (formatting) {
   messageFormatting = formatting
 }
@@ -208,6 +211,7 @@ const processEvent = function (event) {
 module.exports = {
   processEvent,
   convert,
+  getMessageFormatting,
   setMessageFormatting,
   ITEMS,
   EVENT_TYPES
