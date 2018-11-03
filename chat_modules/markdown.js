@@ -7,6 +7,72 @@ const Ansi = require('./ansi')
  
 const entities = new Entities();
 
+const urls = {
+  'meta.stackexchange.com': 'Meta Stack Exchange',
+  'stackoverflow.com': 'Stack Overflow',
+  'pt.stackoverflow.com': 'Stack Overflow em Português',
+  'meta.pt.stackoverflow.com': 'Meta Stack Overflow em Português',
+  'es.stackoverflow.com': 'Stack Overflow en español',
+  'meta.es.stackoverflow.com': 'Meta Stack Overflow en español',
+  'ru.stackoverflow.com': 'Stack Overflow на русском',
+  'meta.ru.stackoverflow.com': 'Meta Stack Overflow на русском',
+  'ja.stackoverflow.com': 'スタック・オーバーフロー',
+  'meta.ja.stackoverflow.com': 'Meta スタック・オーバーフロー',
+  'askubuntu.com': 'Ask Ubuntu',
+  'meta.askubuntu.com': 'Ask Ubuntu',
+  'mathoverflow.net': 'Math Overflow',
+  'meta.mathoverflow.net': 'Meta Math Overflow',
+  'serverfault.com': 'Server Fault',
+  'meta.serverfault.com': 'Meta Server Fault',
+  'superuser.com': 'Super User',
+  'meta.superuser.com': 'Meta Super User',
+  'stackexchange.com': 'Stack Exchange'
+}
+const sites = {
+  'codereview': 'Code Review',
+  'codegolf': 'Code Golf',
+  'anime': 'Anime & Manga',
+  'apple': 'Ask Different',
+  'english': 'English Language & Usage',
+  'ell': 'English Language Learners',
+  'gamedev': 'Game Development',
+  'graphicdesign': 'Graphic Design',
+  'diy': 'Home Improvement',
+  'security': 'Information Security',
+  'japanese': 'Japanese Language',
+  'magento': 'Magento',
+  'mathematica': 'Mathematica',
+  'math': 'Mathematics',
+  'judaism': 'Mi Yodeya',
+  'movies': 'Movies & TV',
+  'music': 'Music: Practice & Theory',
+  'networkengineering': 'Network Engineering',
+  'money': 'Personal Finance & Money',
+  'photo': 'Photography',
+  'physics': 'Physics',
+  'puzzling': 'Puzzling',
+  'quantumcomputing': 'Quantum Computing',
+  'raspberrypi': 'Raspberry Pi',
+  'rpg': 'Role-playing Games',
+  'salesforce': 'Salesforce',
+  'scifi': 'Science Fiction & Fantasy',
+  'sharepoint': 'Sharepoint',
+  'dsp': 'Signal Processing',
+  'skeptics': 'Skeptics',
+  'softwareengineering': 'Software Engineering',
+  'softwarerecs': 'Software Recommendations',
+  'tex': 'TeX - LaTeX',
+  'workplace': 'The Workplace',
+  'cstheory': 'Theoretical Computer Science',
+  'travel': 'Travel',
+  'unix': 'Unix & Linux',
+  'ux': 'User Experience',
+  'webapp': 'Web Applications',
+  'webmasters': 'Webmasters',
+  'wordpress': 'WordPress Development',
+  'worldbuilding': 'Worldbuilding'
+}
+
 const quote = {
   test: text => text.startsWith('<div class="quote">') && (/#comment\d+_\d+/).test(text),
   replace: text => {
@@ -15,70 +81,6 @@ const quote = {
     const author = root.querySelector('a').childNodes[0].rawText
     const { href: url } = root.querySelectorAll('a').filter(a => a.rawAttributes.hasOwnProperty('rel'))[1].rawAttributes
     let u = new URL(url)
-    const urls = {
-      'meta.stackexchange.com': 'Meta Stack Exchange',
-      'stackoverflow.com': 'Stack Overflow',
-      'pt.stackoverflow.com': 'Stack Overflow em Português',
-      'meta.pt.stackoverflow.com': 'Meta Stack Overflow em Português',
-      'es.stackoverflow.com': 'Stack Overflow en español',
-      'meta.es.stackoverflow.com': 'Meta Stack Overflow en español',
-      'ru.stackoverflow.com': 'Stack Overflow на русском',
-      'meta.ru.stackoverflow.com': 'Meta Stack Overflow на русском',
-      'ja.stackoverflow.com': 'スタック・オーバーフロー',
-      'meta.ja.stackoverflow.com': 'Meta スタック・オーバーフロー',
-      'askubuntu.com': 'Ask Ubuntu',
-      'meta.askubuntu.com': 'Ask Ubuntu',
-      'mathoverflow.net': 'Math Overflow',
-      'meta.mathoverflow.net': 'Meta Math Overflow',
-      'serverfault.com': 'Server Fault',
-      'meta.serverfault.com': 'Meta Server Fault',
-      'superuser.com': 'Super User',
-      'meta.superuser.com': 'Meta Super User'
-    }
-    const sites = {
-      'codereview': 'Code Review',
-      'codegolf': 'Code Golf',
-      'anime': 'Anime & Manga',
-      'apple': 'Ask Different',
-      'english': 'English Language & Usage',
-      'ell': 'English Language Learners',
-      'gamedev': 'Game Development',
-      'graphicdesign': 'Graphic Design',
-      'diy': 'Home Improvement',
-      'security': 'Information Security',
-      'japanese': 'Japanese Language',
-      'magento': 'Magento',
-      'mathematica': 'Mathematica',
-      'math': 'Mathematics',
-      'judaism': 'Mi Yodeya',
-      'movies': 'Movies & TV',
-      'music': 'Music: Practice & Theory',
-      'networkengineering': 'Network Engineering',
-      'money': 'Personal Finance & Money',
-      'photo': 'Photography',
-      'physics': 'Physics',
-      'puzzling': 'Puzzling',
-      'quantumcomputing': 'Quantum Computing',
-      'raspberrypi': 'Raspberry Pi',
-      'rpg': 'Role-playing Games',
-      'salesforce': 'Salesforce',
-      'scifi': 'Science Fiction & Fantasy',
-      'sharepoint': 'Sharepoint',
-      'dsp': 'Signal Processing',
-      'skeptics': 'Skeptics',
-      'softwareengineering': 'Software Engineering',
-      'softwarerecs': 'Software Recommendations',
-      'tex': 'TeX - LaTeX',
-      'workplace': 'The Workplace',
-      'cstheory': 'Theoretical Computer Science',
-      'travel': 'Travel',
-      'unix': 'Unix & Linux',
-      'ux': 'User Experience',
-      'webapp': 'Web Applications',
-      'webmasters': 'Webmasters',
-      'wordpress': 'WordPress Development',
-      'worldbuilding': 'Worldbuilding'
-    }
     for (const [name, site] of Object.entries(sites)) {
       sites[`meta.${name}`] = `Meta ${site}`
     }
@@ -184,11 +186,14 @@ const oneboxMessage = {
   test: text => (/<div class="onebox ob-message"><a rel="noopener noreferrer" class="roomname"/g).test(text),
   replace: (text, context) => {
     const root = parse(text)
-    const { href } = root.querySelector('a').rawAttributes
+    let { href } = root.querySelector('a').rawAttributes
     const age = root.querySelector('a').rawText
     const author = root.querySelector('.user-name').rawText
     const body = root.querySelector('div.quote').rawText
-    return '\n' + Ansi.box(` | ${body}`, terminalLink(`${age}, by ${author}`.blue, `https://chat.${context.domain}.com${href}`), false, false)
+    if (href.startsWith('/')){
+      href = `https://chat.${context.domain}.com${href}`
+    }
+    return '\n' + Ansi.box(` | ${body}`, terminalLink(`${age}, by ${author}`.blue, href), false, false)
   }
 }
 
@@ -198,6 +203,30 @@ const oneboxImage = {
     const root = parse(text)
     const { href } = root.querySelector('a').rawAttributes
     return '\n' + Ansi.box(terminalLink(href.green, href), 'Image'.blue, true, false)
+  }
+}
+
+const oneboxRoom = {
+  test: text => text.startsWith('<div class="room-mini">'),
+  replace: (text, context) => {
+
+    const root = parse(text)
+    let { href } = root.querySelector('span.room-name a').rawAttributes
+    const name = root.querySelector('span.room-name a').rawText
+    const body = root.querySelector('div.room-mini-description').rawText
+    if (href.startsWith('//')){
+      href = href.replace(/^\/\//, 'https://')
+    }
+    if (href.startsWith('/')){
+      href = `https://chat.${context.domain}.com${href}`
+    }
+    let [, location] = href.match(/https?:\/\/chat.([^\/]+)\//)
+    let place = urls[location]
+    const icon = root.querySelector('img.small-site-logo')
+    if (icon !== null) {
+      place = icon.rawAttributes.title
+    }
+    return '\n' + Ansi.box(Ansi.spreadAcrossLines(body, 30), `Room on ${place} - ${terminalLink(name, href)}`, false, true)
   }
 }
 
@@ -239,6 +268,7 @@ const all = {
   postOnebox,
   oneboxMessage,
   oneboxTweet,
+  oneboxRoom,
   oneboxImage,
   quote,
   bold,
