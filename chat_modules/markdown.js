@@ -226,7 +226,7 @@ const oneboxRoom = {
     if (icon !== null) {
       place = icon.rawAttributes.title
     }
-    return '\n' + Ansi.box(Ansi.spreadAcrossLines(body, 30), `Room on ${place} - ${terminalLink(name, href)}`, false, true)
+    return '\n' + Ansi.box(Ansi.spreadAcrossLines(body, 30), `${'Room on'.green} ${place.blue} - ${terminalLink(name.green, href)}`, false, true)
   }
 }
 
